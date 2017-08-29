@@ -61,3 +61,4 @@ graphiQLClient/dist
 serverless/.serverless
 .idea
 shared-local-instance.db
+serverless/config.js
