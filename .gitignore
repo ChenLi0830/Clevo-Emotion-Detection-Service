@@ -62,3 +62,6 @@ serverless/.serverless
 .idea
 shared-local-instance.db
 serverless/config.js
+*.mp3
+*.wav
+

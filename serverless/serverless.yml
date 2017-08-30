@@ -76,10 +76,17 @@ functions:
     warmup: true
     handler: handler.convertAudioToWAV
     events:
-    - http:
-        path: convertAudioToWAV
-        method: get
-        cors: true
+    # - http:
+    #     path: convertAudioToWAV
+    #     method: get
+    #     cors: true
+    - s3:
+        bucket: clevo.${self:provider.stage}.recordings.companies
+        event: s3:ObjectCreated:*
+        # rules:
+        #   - suffix: .png
+        rules:
+          - prefix: umf/
 
 plugins:
   - serverless-plugin-warmup
