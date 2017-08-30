@@ -1,6 +1,6 @@
 let ffmpeg = require('fluent-ffmpeg');
 let path = require('path');
-let track = './20170623170919_642_15842777828_601.mp3';//your path to source file
+let track = 'https://s3-us-west-2.amazonaws.com/clevo.dev.recordings.companies/umf/20170623165732_642_18608122306_601.mp3';//your path to source file
 
 let extension = path.extname(track);
 let baseName = path.basename(track, extension);
