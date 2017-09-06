@@ -3,7 +3,7 @@ let path = require('path');
 let fs = require('fs');
 
 // let filePath = 'https://s3-us-west-2.amazonaws.com/clevo.dev.recordings.companies/umf/20170623165732_642_18608122306_601.mp3';
-let filePath = '/Users/Chen/Downloads/yonel/data/wav/334485_211_084904.wav';
+// let filePath = '/Users/Chen/Downloads/yonel/data/wav/334485_211_084904.wav';
 
 const convertAudioToWav = (filePath, outputPath = "./") => {
   let extension = path.extname(filePath);
