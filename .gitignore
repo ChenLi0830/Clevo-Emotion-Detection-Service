@@ -65,3 +65,5 @@ serverless/config.js
 *.mp3
 *.wav
 
+serverless/dev/.ipynb_checkpoints
+serverless/test/.ipynb_checkpoints
