@@ -23,7 +23,7 @@ print(len(wavArr))
 # for i,fileName in enumerate(wavArr[1:2]):
 for i,fileName in enumerate(wavArr):
     print(i,fileName)
-    filePath = wavDirPath+fileName
+    filePath = wavDirPath + fileName
     print("filePath", filePath)
     [sampleRate, audio] = wavfile.read(filePath)
     print(audio.shape[0])
@@ -33,7 +33,6 @@ for i,fileName in enumerate(wavArr):
     step = 5 * sampleRate
     index = 0
     while start + duration < audio.shape[0]:
-        start+=step
         audioSeg = audio[start:start+duration]
 #         print(audioSeg.shape[0])
         if (audioSeg.shape[0] == 80000):            
@@ -41,4 +40,6 @@ for i,fileName in enumerate(wavArr):
             newFilePath = wavSavePath + filePrefix + "__" + str(index) + ".wav"
             index += 1
             wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
-            
+
+        start+=step
+
