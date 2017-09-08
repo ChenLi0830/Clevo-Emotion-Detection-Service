@@ -9,4 +9,15 @@ const readDirRecurs = (dir) =>
                     files.concat(path.join(dir, file)),
             []);
 
-module.exports = {readDirRecurs};
+const calcFormEncode = (properties) => {
+  let formBody = [];
+  for (let property in properties) {
+    let encodedKey = encodeURIComponent(property);
+    let encodedValue = encodeURIComponent(properties[property]);
+    formBody.push(encodedKey + "=" + encodedValue);
+  }
+  formBody = formBody.join("&");
+  return formBody;
+};
+
+module.exports = {readDirRecurs, calcFormEncode};
