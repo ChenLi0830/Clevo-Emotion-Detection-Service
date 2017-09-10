@@ -19,6 +19,9 @@ service: Clevo-Emotion-Detection # NOTE: update this with your service name
 
 custom:
   defaultStage: dev
+  productionStream: arn:aws:dynamodb:us-west-2:478102786148:table/Clevo-Raw-Speech-Table/stream/2017-09-10T22:42:16.509
+#  devStream: arn:aws:dynamodb:us-west-2:594750710208:table/Users/stream/2016-12-27T16:29:37.237
+
 
 provider:
   name: aws
@@ -55,7 +58,13 @@ provider:
           - Ref: AWS::Region
           - Ref: AWS::AccountId
           - function:${self:service}-${opt:stage, self:provider.stage}-*
-
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource: "arn:aws:dynamodb:us-west-2:*:table/*"
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
@@ -72,22 +81,26 @@ package:
 #    - exclude-me-dir/**
 
 functions:
-  convertAudioToWAV:
-    warmup: true
-    handler: handler.convertAudioToWAV
+  getEmotion:
+    handler: getEmotionHandler.handler
     events:
-    # - http:
-    #     path: convertAudioToWAV
-    #     method: get
-    #     cors: true
-    - s3:
-        bucket: clevo.${self:provider.stage}.recordings.companies
-        event: s3:ObjectCreated:*
-        # rules:
-        #   - suffix: .png
-        rules:
-          - prefix: umf/
+    - stream: ${self:custom.${self:provider.stage}Stream}
+#  convertAudioToWAV:
+#    warmup: true
+#    handler: handler.convertAudioToWAV
+#    events:
+#    # - http:
+#    #     path: convertAudioToWAV
+#    #     method: get
+#    #     cors: true
+#    - s3:
+#        bucket: clevo.${self:provider.stage}.recordings.companies
+#        event: s3:ObjectCreated:*
+#        # rules:
+#        #   - suffix: .png
+#        rules:
+#          - prefix: umf/
 
 plugins:
-  - serverless-plugin-warmup
-  - serverless-dynamodb-local
+#  - serverless-plugin-warmup
+#  - serverless-dynamodb-local
