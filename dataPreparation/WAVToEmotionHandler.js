@@ -34,7 +34,7 @@ const analyzeFile = (apiKey, token, content, fileName) => {
   })
       .then((response) => response.json())
       .then((data) => {
-        // console.log("data", data);
+        console.log("data", data);
         const recID = data.recordingId ? data.recordingId : JSON.parse(data).recordingId;
         const upStreamUrl = options.url.serverUrl + recID;
         
