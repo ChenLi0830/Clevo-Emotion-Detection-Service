@@ -41,6 +41,7 @@ def preprocess_dataset(inpath="Samples/", outpath="Preproc/"):
                        ", file ",idx2+1," of ",n_load,": ",audio_path,sep="")
             #start = timer()
             aud, sr = librosa.load(audio_path, sr=None)
+            print("sr", sr)
             melgram = librosa.logamplitude(librosa.feature.melspectrogram(aud, sr=sr, n_mels=96),ref_power=1.0)[np.newaxis,np.newaxis,:,:]
             outfile = outpath + classname + '/' + infilename+'.npy'
             np.save(outfile,melgram)

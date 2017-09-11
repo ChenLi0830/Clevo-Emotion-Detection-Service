@@ -67,3 +67,5 @@ serverless/config.js
 
 serverless/dev/.ipynb_checkpoints
 serverless/test/.ipynb_checkpoints
+*.npy
+package-lock.json.526051140

@@ -65,6 +65,12 @@ provider:
         - dynamodb:GetShardIterator
         - dynamodb:ListStreams
       Resource: "arn:aws:dynamodb:us-west-2:*:table/*"
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: "arn:aws:s3:::clevo.recordings.companies"
+
+
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
