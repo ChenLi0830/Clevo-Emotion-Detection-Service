@@ -48,6 +48,31 @@ const getSentenseCategorization = (transcription) => {
   // return callNLPMethod(transcription, "https://clevo-categorize.appspot.com/")
 };
 
+const getEmployeeId = (fileName) => {
+  return fileName.split('_')[1];
+};
+
+
+const bannedWords = ["不清楚", "不可能", "不明白", "不知道", "黑名单", '加白', "群发短信", "沉默短信", "屏蔽"];
+const alertWords = ["媒体", "记者", "工信部", "律师", "媒体", '记者', "消协", "诈骗", "曝光"];
+const getWordsFromTranscript = (transcript, words) => {
+  let result = [];
+  words.forEach(word => {
+    if (transcript.indexOf(word)>-1) result.push(word);
+  });
+  return result;
+};
+
+const analyzeTalkDurations = (transcriptionList) => {
+  let speaker1Duration = 0, speaker2Duration = 0;
+  transcriptionList.forEach(transcript => {
+    if (transcript.speaker === "1") speaker1Duration += (transcript.ed - transcript.bg);
+    else speaker2Duration += (transcript.ed - transcript.bg);
+  });
+  let silenceDuration = transcriptionList[transcriptionList.length - 1].ed - speaker1Duration - speaker2Duration;
+  return [speaker1Duration, speaker2Duration, silenceDuration];
+};
+
 module.exports.handler = (event, context, callback) => {
   console.log("event", JSON.stringify(event));
   
@@ -88,12 +113,16 @@ module.exports.handler = (event, context, callback) => {
       transcriptionList.forEach(transcription => {
         let singleSentensePromise = getSentenseCategorization(transcription.onebest)
             .then(category => {
+              let appearedBanWords = getWordsFromTranscript(transcription.onebest, bannedWords);
+              let appearedAlertWords = getWordsFromTranscript(transcription.onebest, alertWords);
               return {
                 bg: transcription.bg,
                 ed: transcription.ed,
                 onebest: transcription.onebest,
                 speaker: transcription.speaker,
-                categories: category
+                categories: category,
+                bannedWords: appearedBanWords,
+                alertWords: appearedAlertWords,
               }
             });
         
@@ -104,9 +133,12 @@ module.exports.handler = (event, context, callback) => {
           .then(results => {
             let newFields = {};
             newFields.categorizedSpeechTopic = results[0];
-            console.log("categorizedSpeechTopic", categorizedSpeechTopic);
             newFields.categorizeResult = results.slice(1);
-            console.log("categorizeResult", categorizeResult);
+            newFields.employeeId = getEmployeeId(fileName);
+            [newFields.speaker1TalkDuration, newFields.speaker2TalkDuration, newFields.silenceDuration] = analyzeTalkDurations(transcriptionList);
+  
+            console.log("newFields", newFields);
+  
             return processedSpeechUpdate(fileName, newFields);
           })
       
