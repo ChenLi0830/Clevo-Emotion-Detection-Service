@@ -9,6 +9,7 @@ const options = require('./config').options;
 const calcFormEncode = require('./api').calcFormEncode;
 const fetch = require('isomorphic-fetch');
 const fs = require('fs');
+const api = require('./api');
 
 const processedSpeechUpdate = require('./database/CRUD/processedSpeechUpdate');
 const processedSpeechCreate = require('./database/CRUD/processedSpeechCreate');
@@ -127,7 +128,11 @@ module.exports.handler = (event, context, callback) => {
                 return callback(new Error(`get emotion result failed, response: ${JSON.stringify(result)}`));
               }
               
-              return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
+              let [totalEmoScore, totalToneScore, abnormalEmotions] = api.getEmotionScore(result.result.analysisSegments, result.result.duration);
+              
+              console.log("totalEmoScore, totalToneScore, abnormalEmotions", totalEmoScore, totalToneScore, abnormalEmotions);
+              
+              return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration, totalEmoScore, totalToneScore, abnormalEmotions});
               // return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
             })
             .then(result => {
