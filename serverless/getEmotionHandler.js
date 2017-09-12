@@ -75,90 +75,96 @@ module.exports.handler = (event, context, callback) => {
   
   // let records = event.Records;
   if (event.Records.length === 0) {
-    return callback(new Error("no record"));
+    console.log(new Error("no record"));
+    return callback();
   }
   
-  let method = "MODIFY";
-  if (event.Records[0].eventName!==method || !event.Records[0].dynamodb){
-    return callback(new Error(`Only method ${method} in dynamoDB is needed here`));
-  }
+  let promises = event.Records.map(record => {
+    return new Promise((resolve, reject)=>{
+      let method = "MODIFY";
+      if ((record.eventName!==method/* && record.eventName!=="MODIFY"*/) || !record.dynamodb){
+        console.log(new Error(`Method ${record.eventName} in dynamoDB is not needed here`));
+        return reject();
+      }
   
-  const image = event.Records[0].dynamodb.NewImage;
-  if (!image){
-    return callback(new Error(`no new image`));
-  }
+      const newImage = record.dynamodb.NewImage;
+      const oldImage = record.dynamodb.OldImage;
+      if (!newImage || !oldImage){
+        console.log(new Error(`no new or old image`));
+        return reject();
+      }
+      if (JSON.stringify(oldImage.transcriptionText) === JSON.stringify(newImage.transcriptionText)){
+        console.log(new Error(`the modification is not in transcription`));
+        return reject();
+      }
   
-  const fileName = image.fileName.S;
-  const fileExtension = image.fileExtension.S;
+      const fileName = newImage.fileName.S;
+      const fileExtension = newImage.fileExtension.S;
   
-  console.log("trying to get record", `UMF/${fileName}.${fileExtension}`);
+      console.log("trying to get record", `UMF/${fileName}.${fileExtension}`);
   
-  if (image){
-    s3.getObject({
-      Bucket: "clevo.recordings.companies",
-      Key: `UMF/${fileName}.${fileExtension}`,
-    }, function(err, s3File) {
-      if (err) {
-        console.log(err, err.stack);
+      s3.getObject({
+        Bucket: "clevo.recordings.companies",
+        Key: `UMF/${fileName}.${fileExtension}`,
+      }, function(err, s3File) {
+        if (err) {
+          console.log(err, err.stack);
+          return reject()
+        } else {
+          return getToken(options.apiKey, options)
+              .then(token => {
+                console.log("token", token);
+            
+                return analyzeFile(options.apiKey, token, s3File.Body);
+              })
+              .then(result => {
+                console.log("emotion result",  JSON.stringify(result));
+                console.log("result.status",  JSON.stringify(result.status));
+                console.log("result.result",  JSON.stringify(result.result));
+                console.log("result.result.analysisSegments",  JSON.stringify(result.result.analysisSegments));
+                if (result.status !== "success"){
+                  console.log(new Error(`get emotion result failed, response: ${JSON.stringify(result)}`));
+                  return reject();
+                }
+            
+                let [totalEmoScore, totalToneScore, abnormalEmotions] = api.getEmotionScore(result.result.analysisSegments, result.result.duration);
+            
+                console.log("totalEmoScore, totalToneScore, abnormalEmotions", totalEmoScore, totalToneScore, abnormalEmotions);
+            
+                return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration, totalEmoScore, totalToneScore, abnormalEmotions});
+                // return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
+              })
+              .then(result => {
+                //Todo 添加result到processed data
+                return resolve(result);
+              })
+              .catch(error => {
+                console.log("error", error);
+                return reject(error);
+              })
+          }
+        });
+    })
+  });
+  
+  return Promise.all(promises)
+      .then(results => {
+        console.log("promise results", results);
+        
         const response = {
-          statusCode: 404,
+          statusCode: 200,
           body: JSON.stringify({
-            message: JSON.stringify(err),
+            // message: 'Go Serverless v1.0! Your function executed successfully!',
+            // input: event,
           }),
         };
   
         callback(null, response);
-      } else {
-  
-        return getToken(options.apiKey, options)
-            .then(token => {
-              console.log("token", token);
-  
-              // let file = fs.readFileSync('./20170623100908_861_13817033084_601.wav');
-              // console.log("file", file);
-  
-              return analyzeFile(options.apiKey, token, s3File.Body);
-            })
-            .then(result => {
-              console.log("emotion result",  JSON.stringify(result));
-              console.log("result.status",  JSON.stringify(result.status));
-              console.log("result.result",  JSON.stringify(result.result));
-              console.log("result.result.analysisSegments",  JSON.stringify(result.result.analysisSegments));
-              if (result.status !== "success"){
-                return callback(new Error(`get emotion result failed, response: ${JSON.stringify(result)}`));
-              }
-              
-              let [totalEmoScore, totalToneScore, abnormalEmotions] = api.getEmotionScore(result.result.analysisSegments, result.result.duration);
-              
-              console.log("totalEmoScore, totalToneScore, abnormalEmotions", totalEmoScore, totalToneScore, abnormalEmotions);
-              
-              return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration, totalEmoScore, totalToneScore, abnormalEmotions});
-              // return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
-            })
-            .then(result => {
-              //Todo 添加result到processed data
-              
-              const response = {
-                statusCode: 200,
-                body: JSON.stringify({
-                  // message: 'Go Serverless v1.0! Your function executed successfully!',
-                  // input: event,
-                }),
-              };
-  
-              callback(null, response);
-            })
-            .catch(error => {
-              console.log("error", error);
-              callback(error);
-            })
-      }
-    });
-  }
-  
-  
-  
-
+      })
+      .catch(error => {
+        console.log("error", error);
+        callback();
+      })
 
   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
   // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
