@@ -10,6 +10,9 @@ const calcFormEncode = require('./api').calcFormEncode;
 const fetch = require('isomorphic-fetch');
 const fs = require('fs');
 
+const processedSpeechUpdate = require('./database/CRUD/processedSpeechUpdate');
+const processedSpeechCreate = require('./database/CRUD/processedSpeechCreate');
+
 const getToken = (apiKey, options) => {
   return fetch(options.url.tokenUrl, {
     method: 'POST',
@@ -51,11 +54,11 @@ const analyzeFile = (apiKey, token, content) => {
           body: content,
         })
             .then(response => {
-              console.log("response", response);
+              // console.log("response", response);
               return response.json();
             })
             .then(result => {
-              return console.log("result", JSON.stringify(result))
+              return result;
             })
         // recordingId = result.recordingId;
       })
@@ -71,25 +74,28 @@ module.exports.handler = (event, context, callback) => {
   
   // let records = event.Records;
   if (event.Records.length === 0) {
-    callback(new Error("no record"));
+    return callback(new Error("no record"));
   }
   
   let method = "MODIFY";
   if (event.Records[0].eventName!==method || !event.Records[0].dynamodb){
-    callback(new Error(`Only method ${method} in dynamoDB is needed here`));
+    return callback(new Error(`Only method ${method} in dynamoDB is needed here`));
   }
   
   const image = event.Records[0].dynamodb.NewImage;
   if (!image){
-    callback(new Error(`no new image`));
+    return callback(new Error(`no new image`));
   }
   
-  console.log("trying to get record", `UMF/${image.fileName.S}.${image.fileExtension.S}`);
+  const fileName = image.fileName.S;
+  const fileExtension = image.fileExtension.S;
+  
+  console.log("trying to get record", `UMF/${fileName}.${fileExtension}`);
   
   if (image){
     s3.getObject({
       Bucket: "clevo.recordings.companies",
-      Key: `UMF/${image.fileName.S}.${image.fileExtension.S}`,
+      Key: `UMF/${fileName}.${fileExtension}`,
     }, function(err, s3File) {
       if (err) {
         console.log(err, err.stack);
@@ -113,7 +119,19 @@ module.exports.handler = (event, context, callback) => {
               return analyzeFile(options.apiKey, token, s3File.Body);
             })
             .then(result => {
-              console.log("emotion result",  result);
+              console.log("emotion result",  JSON.stringify(result));
+              console.log("result.status",  JSON.stringify(result.status));
+              console.log("result.result",  JSON.stringify(result.result));
+              console.log("result.result.analysisSegments",  JSON.stringify(result.result.analysisSegments));
+              if (result.status !== "success"){
+                return callback(new Error(`get emotion result failed, response: ${JSON.stringify(result)}`));
+              }
+              
+              return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
+              // return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
+            })
+            .then(result => {
+              //Todo 添加result到processed data
               
               const response = {
                 statusCode: 200,
@@ -125,7 +143,10 @@ module.exports.handler = (event, context, callback) => {
   
               callback(null, response);
             })
-        
+            .catch(error => {
+              console.log("error", error);
+              callback(error);
+            })
       }
     });
   }

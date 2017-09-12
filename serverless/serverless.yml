@@ -19,7 +19,7 @@ service: Clevo-Emotion-Detection # NOTE: update this with your service name
 
 custom:
   defaultStage: dev
-  productionStream: arn:aws:dynamodb:us-west-2:478102786148:table/Clevo-Raw-Speech-Table/stream/2017-09-10T22:42:16.509
+  productionStream: arn:aws:dynamodb:us-west-2:478102786148:table/Clevo-Raw-Speech-Table/stream/2017-09-11T18:07:21.819
 #  devStream: arn:aws:dynamodb:us-west-2:594750710208:table/Users/stream/2016-12-27T16:29:37.237
 
 
@@ -68,7 +68,7 @@ provider:
     - Effect: Allow
       Action:
         - s3:*
-      Resource: "arn:aws:s3:::clevo.recordings.companies"
+      Resource: "arn:aws:s3:::clevo.recordings.companies/**"
 
 
 # you can define service wide environment variables here
@@ -89,6 +89,7 @@ package:
 functions:
   getEmotion:
     handler: getEmotionHandler.handler
+    timeout: 300 # optional, default is 6
     events:
     - stream: ${self:custom.${self:provider.stage}Stream}
 #  convertAudioToWAV:
