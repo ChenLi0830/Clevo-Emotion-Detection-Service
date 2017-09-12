@@ -92,6 +92,12 @@ functions:
     timeout: 300 # optional, default is 6
     events:
     - stream: ${self:custom.${self:provider.stage}Stream}
+
+  TextAnalysis:
+    handler: textAnalysisHandler.handler
+    timeout: 300 # optional, default is 6
+    events:
+    - stream: ${self:custom.${self:provider.stage}Stream}
 #  convertAudioToWAV:
 #    warmup: true
 #    handler: handler.convertAudioToWAV

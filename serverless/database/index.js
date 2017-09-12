@@ -20,5 +20,6 @@ const processedSpeechCreate = require('./CRUD/processedSpeechCreate');
 
 module.exports = {
   processedSpeechUpdate,
-  processedSpeechCreate
+  processedSpeechCreate,
+  rawSpeechGet
 };
