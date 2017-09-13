@@ -42,10 +42,10 @@ const getSpeechCategorization = (aggregatedTranscription) => {
 };
 
 const getSentenseCategorization = (transcription) => {
-  return new Promise((resolve, reject)=>{
-    return resolve(["扣款查询", "回答问题"]);
-  })
-  // return callNLPMethod(transcription, "https://clevo-categorize.appspot.com/")
+  // return new Promise((resolve, reject)=>{
+  //   return resolve(["扣款查询", "回答问题"]);
+  // })
+  return callNLPMethod(transcription, "https://clevo-categorize-sentence.appspot.com/")
 };
 
 const getEmployeeId = (fileName) => {

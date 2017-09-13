@@ -21,10 +21,10 @@ const update = (tableName, key, newFields, options = {}) => {
   }
   
   // Get update parameters
+  newFields.updatedAt = api.getTimeInSec();
   const UpdateExpression = api.getUpdateExpression(newFields);
   const ExpressionAttributeNames = api.getExpressionAttributeNames(newFields);
   const ExpressionAttributeValues = api.getExpressionAttributeValues(newFields);
-  const timeStamp = api.getTimeInSec();
   
   let params = {
     TableName: tableName,
@@ -32,7 +32,6 @@ const update = (tableName, key, newFields, options = {}) => {
     UpdateExpression,
     ExpressionAttributeNames,
     ExpressionAttributeValues,
-    updatedAt:timeStamp,
     ReturnValues,
   };
   

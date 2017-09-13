@@ -131,7 +131,15 @@ module.exports.handler = (event, context, callback) => {
             
                 console.log("totalEmoScore, totalToneScore, abnormalEmotions", totalEmoScore, totalToneScore, abnormalEmotions);
             
-                return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, speechDuration: result.result.duration, totalEmoScore, totalToneScore, abnormalEmotions});
+                let newFields = {
+                  emotions: result.result.analysisSegments,
+                  speechDuration: result.result.duration,
+                  totalEmoScore,
+                  totalToneScore,
+                  abnormalEmotions,
+                };
+                
+                return processedSpeechUpdate(fileName, newFields);
                 // return processedSpeechUpdate(fileName, {emotions: result.result.analysisSegments, duration: result.result.duration});
               })
               .then(result => {
