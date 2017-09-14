@@ -121,6 +121,7 @@ module.exports.handler = (event, context, callback) => {
                 onebest: transcription.onebest,
                 speaker: transcription.speaker,
                 categories: category,
+                // categories: category,
                 bannedWords: appearedBanWords,
                 alertWords: appearedAlertWords,
               }
