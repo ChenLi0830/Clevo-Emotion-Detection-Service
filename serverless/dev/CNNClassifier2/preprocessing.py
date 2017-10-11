@@ -89,24 +89,30 @@ def getFeature(wavPath):
 
 def conv2D_AvePool(wavPath, kernalSize):
     input = getFeature(wavPath)
-    input_tensor = input.reshape((1,input.shape[0], input.shape[1] ,1))
+    (h,w) = input.shape
+    input_tensor = input.reshape((1,h, w,1))
+    kernalResolution = (24, w) # temporal resolutions: 16, 24, 32
 
     # build model
-    inputs = Input(shape=(input.shape[0], input.shape[1], 1))
-    x = Conv2D(kernalSize, (25, 52))(inputs)
-    output = AveragePooling2D((input.shape[0]-24, 1))(x)
+    inputs = Input(shape=(h, w, 1))
+    x = Conv2D(kernalSize, kernalResolution)(inputs)
+#     model = Model(inputs=inputs, outputs=x)
+#     result = model.predict(input_tensor)
+#     print(result.shape)
+    output = AveragePooling2D((h - kernalResolution[0] + 1, 1))(x)
     model = Model(inputs=inputs, outputs=output)
 
     result = model.predict(input_tensor)[0,0,0,:]
+
     return result
 
 def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1):
     counter = 0
 
-    #waveArr = list(os.walk(wavDirBase))
-    waveArr0 = [os.listdir(os.path.join(wavDirBase, x)) for x in os.listdir(wavDirBase) if not os.path.isfile(x)]
-    fileCount = sum([len(list1) for list1 in waveArr0])
-    # waveArr = [item for sublist in waveArr0 for item in sublist]
+#     #waveArr = list(os.walk(wavDirBase))
+#     waveArr0 = [os.listdir(os.path.join(wavDirBase, x)) for x in os.listdir(wavDirBase) if not os.path.isfile(x)]
+#     fileCount = sum([len(list1) for list1 in waveArr0])
+#     # waveArr = [item for sublist in waveArr0 for item in sublist]
 
     x_all_list = []
     y_all_list = []
@@ -117,25 +123,19 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
         numOfWavs = 0
         print("len(waveArr)", len(waveArr))
         for wavFile in waveArr:
+            if wavFile.endswith(".wav")==False:
+                continue
 
             wavPath = "{}/{}/{}".format(wavDirBase, category, wavFile)
             result = conv2D_AvePool(wavPath, kernalSize)
-#             input = getFeature(wavPath)
-#             input_tensor = input.reshape((1,input.shape[0], input.shape[1] ,1))
-
-#             inputs = Input(shape=(input.shape[0], input.shape[1], 1))
-#             x = Conv2D(kernalSize, (25, 52))(inputs)
-#             x = AveragePooling2D((input.shape[0]-24, 1))(x)
-
-#             model = Model(inputs=inputs, outputs=x)
-#             result = model.predict(input_tensor)
 
             x_all_list.append(result)
             y_all_list.append(categories.index(category))
 
             counter += 1
             numOfWavs += 1
-            if (numOfWavsForEachCategory>0 and numOfWavs>numOfWavsForEachCategory):
+
+            if (numOfWavsForEachCategory>0 and numOfWavs>=numOfWavsForEachCategory):
                 break
 
             if (counter % 100 == 0):
@@ -149,3 +149,4 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
     y_all = np.array(y_all_list)
 
     return x_all, y_all
+    
