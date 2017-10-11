@@ -87,15 +87,26 @@ def getFeature(wavPath):
 #     print(features.shape)
     return features
 
+def conv2D_AvePool(wavPath, kernalSize):
+    input = getFeature(wavPath)
+    input_tensor = input.reshape((1,input.shape[0], input.shape[1] ,1))
 
+    # build model
+    inputs = Input(shape=(input.shape[0], input.shape[1], 1))
+    x = Conv2D(kernalSize, (25, 52))(inputs)
+    output = AveragePooling2D((input.shape[0]-24, 1))(x)
+    model = Model(inputs=inputs, outputs=output)
 
-def calculate_XY(wavDirBase, categories, kernalSize):
+    result = model.predict(input_tensor)[0,0,0,:]
+    return result
+
+def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1):
     counter = 0
+
     #waveArr = list(os.walk(wavDirBase))
     waveArr0 = [os.listdir(os.path.join(wavDirBase, x)) for x in os.listdir(wavDirBase) if not os.path.isfile(x)]
     fileCount = sum([len(list1) for list1 in waveArr0])
     # waveArr = [item for sublist in waveArr0 for item in sublist]
-    print("total file count: ", fileCount)
 
     x_all_list = []
     y_all_list = []
@@ -103,30 +114,36 @@ def calculate_XY(wavDirBase, categories, kernalSize):
     print("Start processing at {}".format(datetime.datetime.utcnow()))
     for category in categories:
         waveArr = os.listdir(os.path.join(wavDirBase, category))
-        # print("len(waveArr)", len(waveArr))
+        numOfWavs = 0
+        print("len(waveArr)", len(waveArr))
         for wavFile in waveArr:
 
             wavPath = "{}/{}/{}".format(wavDirBase, category, wavFile)
-            input = getFeature(wavPath)
-            input_tensor = input.reshape((1,input.shape[0], input.shape[1] ,1))
+            result = conv2D_AvePool(wavPath, kernalSize)
+#             input = getFeature(wavPath)
+#             input_tensor = input.reshape((1,input.shape[0], input.shape[1] ,1))
 
-            inputs = Input(shape=(input.shape[0], input.shape[1], 1))
-            x = Conv2D(kernalSize, (25, 52))(inputs)
-            x = AveragePooling2D((input.shape[0]-24, 1))(x)
+#             inputs = Input(shape=(input.shape[0], input.shape[1], 1))
+#             x = Conv2D(kernalSize, (25, 52))(inputs)
+#             x = AveragePooling2D((input.shape[0]-24, 1))(x)
 
-            model = Model(inputs=inputs, outputs=x)
-            result = model.predict(input_tensor)
+#             model = Model(inputs=inputs, outputs=x)
+#             result = model.predict(input_tensor)
 
-            x_all_list.append(result[0,0,0,:])
+            x_all_list.append(result)
             y_all_list.append(categories.index(category))
 
             counter += 1
+            numOfWavs += 1
+            if (numOfWavsForEachCategory>0 and numOfWavs>numOfWavsForEachCategory):
+                break
+
             if (counter % 100 == 0):
                 K.clear_session()
                 print("{} files have been processed at {}".format(counter, datetime.datetime.utcnow()))
     #             if (counter>=200):
     #                 break;
-            # break
+#             break
 
     x_all = np.array(x_all_list)
     y_all = np.array(y_all_list)
