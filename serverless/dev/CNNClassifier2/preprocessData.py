@@ -32,7 +32,11 @@ from keras.utils.np_utils import to_categorical
 import config
 
 # model params
-batch_size, categories,epochs,kernalSize,num_classes = config.arc1Config.values()
+batch_size = config.arc1Config['batch_size']
+categories = config.arc1Config['categories']
+epochs = config.arc1Config['epochs']
+kernalSize = config.arc1Config['kernalSize']
+num_classes = config.arc1Config['num_classes']
 
 # Preprocessing data
 wavDirBase = "Preproc"

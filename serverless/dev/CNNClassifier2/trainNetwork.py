@@ -30,7 +30,13 @@ from keras.utils.np_utils import to_categorical
 #import python_speech_features
 import config
 # model params
-batch_size, categories,epochs,kernalSize,num_classes = config.arc1Config.values()
+batch_size = config.arc1Config['batch_size']
+categories = config.arc1Config['categories']
+epochs = config.arc1Config['epochs']
+kernalSize = config.arc1Config['kernalSize']
+num_classes = config.arc1Config['num_classes']
+
+print("batch_size, categories, epochs, kernalSize, num_classes", batch_size, categories, epochs, kernalSize, num_classes)
 # Preprocessing data
 wavDirBase = "Preproc"
 
@@ -53,12 +59,13 @@ lastModel.add(Dense(units=num_classes, input_dim=kernalSize))
 lastModel.add(Activation('softmax'))
 # lastModel.add(Dense(10, activation='softmax'))
 lastModel.compile(loss='categorical_crossentropy',
-              optimizer='rmsprop',
+            #   optimizer='rmsprop',
+              optimizer='adam',
               metrics=['accuracy'])
 
 
 # Train modal
-lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=500, verbose=1, validation_split=0.2)
+lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2)
 # Test modal
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
@@ -66,4 +73,3 @@ print('Test accuracy:', score[1])
 
 # Save modal
 lastModel.save_weights('emotion_model_weights.h5')
-
