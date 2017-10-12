@@ -70,11 +70,20 @@ lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbos
 # Test modal
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+print('Test Unweighted accuracy:', score[1])
 
 # y_pred = lastModel.predict(X_test)
 # acc = sum([np.argmax(Y_test_cat[i])==np.argmax(y_pred[i]) for i in range(len(X_test))])/len(X_test)
 # print('Real test accuracy:', acc)
+y_pred = lastModel.predict(X_test)
+WeightedAccuracyArr = np.zeros(num_classes)
+count = np.zeros(num_classes)
+for i in range(len(X_test))]):
+    WeightedAccuracyArr[Y_test_cat[i]] += np.argmax(Y_test_cat[i])==np.argmax(y_pred[i])
+    count[Y_test_cat[i]]++
+
+print("WeightedAccuracyArr", WeightedAccuracyArr)
+print("Weighted Accuracy: ",sum(acc)/num_classes)
 
 # Save modal
 lastModel.save('emotion_model.h5')  # creates a HDF5 file 'my_model.h5'
