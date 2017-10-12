@@ -59,13 +59,9 @@ lastModel.add(Dense(units=num_classes, input_dim=kernalSize))
 # lastModel.add(Dense(units=num_classes, input_dim=512))
 lastModel.add(Activation('softmax'))
 # lastModel.add(Dense(10, activation='softmax'))
-# lastModel.compile(loss='categorical_crossentropy',
-#               optimizer='rmsprop',
-#             #   optimizer='adam',
-#               metrics=['accuracy'])
-lastModel.compile(loss='binary_crossentropy',
-              optimizer='rmsprop',
-            #   optimizer='adam',
+lastModel.compile(loss='categorical_crossentropy',
+            #   optimizer='rmsprop',
+              optimizer='adam',
               metrics=['accuracy'])
 
 
@@ -75,6 +71,10 @@ lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbos
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+# y_pred = lastModel.predict(X_test)
+# acc = sum([np.argmax(Y_test_cat[i])==np.argmax(y_pred[i]) for i in range(len(X_test))])/len(X_test)
+# print('Real test accuracy:', acc)
 
 # Save modal
 lastModel.save('emotion_model.h5')  # creates a HDF5 file 'my_model.h5'
