@@ -4,7 +4,7 @@ import os
 import numpy as np
 import python_speech_features
 import scipy.io.wavfile as wav
-from keras import backend as K
+from keras import initializers, backend as K
 from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Activation
 from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
@@ -78,12 +78,29 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath):
 
 
 def getFeature(wavPath):
+    if os.path.exists(wavPath)==False:
+        print("Error, wavPath doesn't exist!")
+        return
     (rate,sig) = wav.read(wavPath)
-    # features = []
-    logfbank_feat = python_speech_features.logfbank(sig,rate)
-    delta_feat = python_speech_features.delta(logfbank_feat, 2)
 
-    features = np.concatenate((logfbank_feat, delta_feat), axis = 1)
+    # #  - Mel Frequency Cepstral Coefficients
+    # mfcc_feat = python_speech_features.mfcc(sig,rate)
+    # d_mfcc_feat = python_speech_features.delta(mfcc_feat, 2)
+    # # - Filterbank Energies
+    # fbank_feat = python_speech_features.fbank(sig,rate)[0]
+    # # - Log Filterbank Energies
+    # logfbank_feat = python_speech_features.logfbank(sig,rate)
+    # # - Spectral Subband Centroids
+    # ssc_feat = python_speech_features.ssc(sig,rate)
+
+    # Features: Log f bank
+    # logfbank_feat = python_speech_features.logfbank(sig,rate)
+    # delta_feat = python_speech_features.delta(logfbank_feat, 2)
+    #
+    # features = np.concatenate((logfbank_feat, delta_feat), axis = 1)
+
+    features = python_speech_features.mfcc(sig,rate)
+
 #     print(features.shape)
     return features
 
@@ -95,13 +112,14 @@ def conv2D_AvePool(wavPath, kernalSize):
 
     # build model
     inputs = Input(shape=(h, w, 1))
-    x = Conv2D(kernalSize, kernalResolution)(inputs)
-#     model = Model(inputs=inputs, outputs=x)
-#     result = model.predict(input_tensor)
-#     print(result.shape)
+    x = Conv2D(kernalSize, kernalResolution, kernel_initializer=initializers.RandomNormal(mean=0.0, stddev=0.05, seed=123))(inputs)
+
+    # model = Model(inputs=inputs, outputs=x)
+    # result = model.predict(input_tensor)
+    # # print(result.shape)
+
     output = AveragePooling2D((h - kernalResolution[0] + 1, 1))(x)
     model = Model(inputs=inputs, outputs=output)
-
     result = model.predict(input_tensor)[0,0,0,:]
 
     return result
@@ -149,4 +167,3 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
     y_all = np.array(y_all_list)
 
     return x_all, y_all
-    

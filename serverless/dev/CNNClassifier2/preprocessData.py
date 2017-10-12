@@ -37,10 +37,11 @@ categories = config.arc1Config['categories']
 epochs = config.arc1Config['epochs']
 kernalSize = config.arc1Config['kernalSize']
 num_classes = config.arc1Config['num_classes']
+numOfWavsForEachCategory = config.arc1Config['numOfWavsForEachCategory']
 
 # Preprocessing data
 wavDirBase = "Preproc"
-x_all, y_all = calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=600)
+x_all, y_all = calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=numOfWavsForEachCategory)
 
 print(x_all.shape)
 print(y_all.shape)
@@ -49,4 +50,3 @@ np.savetxt("IEMOCAP_X", x_all)
 np.savetxt("IEMOCAP_Y", y_all)
 
 print("Datasets are created and saved successfully")
-

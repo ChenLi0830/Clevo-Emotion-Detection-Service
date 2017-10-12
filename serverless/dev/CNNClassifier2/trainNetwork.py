@@ -35,11 +35,10 @@ categories = config.arc1Config['categories']
 epochs = config.arc1Config['epochs']
 kernalSize = config.arc1Config['kernalSize']
 num_classes = config.arc1Config['num_classes']
+# print("batch_size, categories, epochs, kernalSize, num_classes", batch_size, categories, epochs, kernalSize, num_classes)
 
-print("batch_size, categories, epochs, kernalSize, num_classes", batch_size, categories, epochs, kernalSize, num_classes)
 # Preprocessing data
 wavDirBase = "Preproc"
-
 
 # Load data
 x_all = np.loadtxt("IEMOCAP_X")
@@ -56,11 +55,17 @@ print(Y_train_cat.shape)
 # Build modal
 lastModel = Sequential()
 lastModel.add(Dense(units=num_classes, input_dim=kernalSize))
+# lastModel.add(Dense(units=512, input_dim=kernalSize))
+# lastModel.add(Dense(units=num_classes, input_dim=512))
 lastModel.add(Activation('softmax'))
 # lastModel.add(Dense(10, activation='softmax'))
-lastModel.compile(loss='categorical_crossentropy',
-            #   optimizer='rmsprop',
-              optimizer='adam',
+# lastModel.compile(loss='categorical_crossentropy',
+#               optimizer='rmsprop',
+#             #   optimizer='adam',
+#               metrics=['accuracy'])
+lastModel.compile(loss='binary_crossentropy',
+              optimizer='rmsprop',
+            #   optimizer='adam',
               metrics=['accuracy'])
 
 
@@ -72,4 +77,5 @@ print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
 # Save modal
+lastModel.save('emotion_model.h5')  # creates a HDF5 file 'my_model.h5'
 lastModel.save_weights('emotion_model_weights.h5')
