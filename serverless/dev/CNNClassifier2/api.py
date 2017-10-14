@@ -12,6 +12,7 @@ import datetime
 from pyAudioAnalysis import audioFeatureExtraction
 import librosa
 import librosa.display
+import scipy
 
 def placeUtteranceToFolder(wavPath, category, savePath):
     catePath = savePath + "/" + category
@@ -88,15 +89,23 @@ def getMelspectrogram(wavPath):
     # # Features: mel-spectrogram
     # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
 
-    features = python_speech_features.mfcc(sig, rate)
-    features = np.transpose(features)
+    if (sig.shape[0] / rate > 5) or (sig.shape[0] / rate < 2):
+        return None
 
-    # Add padding
-    time_limit = 3000
-    if len(features[0]) < time_limit:
-        arr = np.ones((13, time_limit - len(features[0])))
-        arr = arr * np.average(features)
-        features = np.concatenate((features, arr), axis=1)
+    features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    features = scipy.misc.imresize(features, (features.shape[0], 300))
+
+    features = features / np.max(features)
+
+    # features = python_speech_features.mfcc(sig, rate)
+    # features = np.transpose(features)
+
+    # # Add padding
+    # time_limit = 3000
+    # if len(features[0]) < time_limit:
+    #     arr = np.ones((13, time_limit - len(features[0])))
+    #     arr = arr * np.average(features)
+    #     features = np.concatenate((features, arr), axis=1)
 
     # print(features.shape)
 
@@ -225,6 +234,9 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
                 result = conv2D_AvePool(wavPath, kernalSize)
             elif architecture == 4:
                 result = getMelspectrogram(wavPath)
+
+            if not result:
+                continue
 
             x_all_list.append(result)
             y_all_list.append(categories.index(category))

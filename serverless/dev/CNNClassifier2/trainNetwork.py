@@ -128,6 +128,10 @@ elif architecture == 4:
     print("x_all.shape[1]", x_all.shape[1])
     # x_all.reshape(-1, 128, 1500, 1)
 
+    # lastModel.add(Conv2D(64, (3, 3), padding="same"))
+    # lastModel.add(Activation('relu'))
+    # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+
     lastModel.add(Conv2D(32, (3, 3), input_shape=(x_all[0].shape[0], x_all[0].shape[1], 1), padding="same"))
     lastModel.add(Activation('relu'))
     lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))

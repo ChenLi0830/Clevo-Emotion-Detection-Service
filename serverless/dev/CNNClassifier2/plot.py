@@ -35,19 +35,33 @@ plt.legend()
 # plt.plot(range(len(features[0])), features[0], label='linear')
 
 # (rate, sig) = wav.read("Preproc/Anger/Ses01F_impro05_F025.wav")
+(rate, sig) = wav.read("Preproc/Anger/Ses01F_impro01_M008.wav")
+
 # (rate, sig) = wav.read("Preproc/Anger/Ses01F_script03_2_F040.wav")
-(rate, sig) = wav.read("Preproc/Happiness/Ses01F_script01_3_F021.wav")
+# (rate, sig) = wav.read("Preproc/Happiness/Ses01F_script01_3_F021.wav")
 
 
 import matplotlib.pyplot as plt
+import scipy
 
 plt.clf()
 # plt.figure(figsize=(10, 4))
 S = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
 print("S.shape", S.shape)
-# librosa.display.specshow(librosa.power_to_db(S,ref=np.max), y_axis='mel', x_axis='time', fmin=50, fmax=3000)
+
+plt.figure()
 librosa.display.specshow(S, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
 plt.colorbar()
+
+# S2 = scipy.misc.imresize(S, 0.25)
+S2 = scipy.misc.imresize(S, (S.shape[0], 300))
+plt.figure()
+librosa.display.specshow(S2, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
+
+S2 = S2 / np.max(S2)
+
+plt.colorbar()
+# librosa.display.specshow(librosa.power_to_db(S,ref=np.max), y_axis='mel', x_axis='time', fmin=50, fmax=3000)
 
 # np.average(S)
 time_limit = 1500
@@ -61,6 +75,8 @@ librosa.display.specshow(S, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
 import python_speech_features
 features = python_speech_features.mfcc(sig, rate)
 features = np.transpose(features)
+
+features = np.mean(features, axis=1)
 
 plt.clf()
 plt.imshow(features, aspect='auto')
