@@ -44,15 +44,16 @@ numOfWavsForEachCategory = config.arc1Config['numOfWavsForEachCategory']
 # print("batch_size, categories, epochs, kernalSize, num_classes", batch_size, categories, epochs, kernalSize, num_classes)
 
 
+# from api import calculate_XY
+# # Preprocessing data
+# wavDirBase = "Preproc"
+# x_all, y_all = calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=numOfWavsForEachCategory,
+#                             architecture=architecture)
 
-# # Load data
-# x_all = np.loadtxt("IEMOCAP_X")
-# y_all = np.loadtxt("IEMOCAP_Y")
-from api import calculate_XY
-# Preprocessing data
-wavDirBase = "Preproc"
-x_all, y_all = calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=numOfWavsForEachCategory,
-                            architecture=architecture)
+# Load data
+x_all = np.load("IEMOCAP_X.npy")
+y_all = np.load("IEMOCAP_Y.npy")
+
 
 X_train, X_test, Y_train, Y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=0)
 Y_train_cat = to_categorical(Y_train)
@@ -129,15 +130,15 @@ elif architecture == 4:
 
     lastModel.add(Conv2D(32, (3, 3), input_shape=(x_all[0].shape[0], x_all[0].shape[1], 1), padding="same"))
     lastModel.add(Activation('relu'))
-    lastModel.add(MaxPooling2D(pool_size=(2, 2)))
+    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
 
-    # lastModel.add(Conv2D(32, (3, 3)))
-    # lastModel.add(Activation('relu'))
-    # lastModel.add(MaxPooling2D(pool_size=(2, 2)))
+    lastModel.add(Conv2D(32, (3, 3), padding="same"))
+    lastModel.add(Activation('relu'))
+    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
 
     lastModel.add(Conv2D(64, (3, 3), padding="same"))
     lastModel.add(Activation('relu'))
-    lastModel.add(MaxPooling2D(pool_size=(2, 2)))
+    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
 
     lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
     lastModel.add(Dense(64))

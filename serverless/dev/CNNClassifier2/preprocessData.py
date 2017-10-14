@@ -48,7 +48,8 @@ x_all, y_all = calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEach
 print(x_all.shape)
 print(y_all.shape)
 
-np.savetxt("IEMOCAP_X", x_all)
-np.savetxt("IEMOCAP_Y", y_all)
+# np.save(outfile, x)
+np.save("IEMOCAP_X", x_all)
+np.save("IEMOCAP_Y", y_all)
 
 print("Datasets are created and saved successfully")
