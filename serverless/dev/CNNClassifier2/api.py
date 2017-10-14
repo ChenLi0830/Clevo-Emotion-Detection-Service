@@ -9,46 +9,48 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Activation
 from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
 import datetime
-
+from pyAudioAnalysis import audioFeatureExtraction
+import librosa
+import librosa.display
 
 def placeUtteranceToFolder(wavPath, category, savePath):
-    catePath = savePath+"/"+category
-    if (os.path.exists(wavPath)!=True):
+    catePath = savePath + "/" + category
+    if (os.path.exists(wavPath) != True):
         raise ValueError("wavPath doesn't exist")
-    if (os.path.exists(savePath)!=True):
+    if (os.path.exists(savePath) != True):
         print("Creating dir: " + savePath)
         os.makedirs(savePath)
-    if (os.path.exists(catePath)!=True):
+    if (os.path.exists(catePath) != True):
         print("Creating dir: " + catePath)
         os.makedirs(catePath)
 
     filename = os.path.basename(wavPath)
 
-    shutil.copy2(wavPath, catePath) # complete target filename given
+    shutil.copy2(wavPath, catePath)  # complete target filename given
 
     print("{} is put into path: {}".format(filename, catePath))
 
 
-def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath):
+def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage=0.6):
     categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
     wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
 
     with open(filePath) as f:
         wav_basename = ""
         count = 0
-        cateStats = {'Neutral':0, 'Anger':0, 'Frustration':0, 'Sadness':0, 'Happiness':0}
+        # cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
+        cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
         for line in f:
-            if (line[0]=="A"):
+            if (line[0] == "A"):
                 if (wav_basename != ""):
-                    cateStats['Anger'] += cateStats['Frustration']
-                    cateStats['Frustration'] = 0
+                    # cateStats['Anger'] += cateStats['Frustration']
+                    # cateStats['Frustration'] = 0
 
-#                     print("count", count)
                     # determine if estimators have a common estimation
                     for category in categories:
                         # print("category", category, "cateStats[category]", cateStats[category])
                         # print("cateStats[category] / count", cateStats[category] / count)
-                        if (cateStats[category] / count > 0.5):
+                        if (cateStats[category] / count >= percentage):
                             wavFolder = re.search('(.*)_[^_]*', wav_basename).group(1)
                             wavFilePath = "{}/{}/{}.wav".format(wavDirPath, wavFolder, wav_basename)
                             placeUtteranceToFolder(wavFilePath, category, relativeSavePath)
@@ -56,7 +58,7 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath):
                     # re-initialize
                     wav_basename = ""
                     count = 0
-                    cateStats = {'Neutral':0, 'Anger':0, 'Frustration':0, 'Sadness':0, 'Happiness':0}
+                    cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
                 continue
 
             if (wav_basename == ""):
@@ -64,24 +66,43 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath):
                 result = regexp.search(line)
                 if result:
                     wav_basename = result.group(1)
-#                     print(wav_basename)
-#                     print(line)
+                # print(wav_basename)
+                #                     print(line)
                 else:
                     continue
-            else: # line with categories
+            else:  # line with categories
                 count += 1
                 for category in categories:
                     if (re.search(category, line)):
-                        cateStats[category]+=1
-#                         print("category {} is counted as {}".format(category, cateStats[category]))
+                        cateStats[category] += 1
+
+
+# print("category {} is counted as {}".format(category, cateStats[category]))
 #                         print("category: ", category, line)
+
+def getMelspectrogram(wavPath):
+    if os.path.exists(wavPath) == False:
+        print("Error, wavPath doesn't exist!")
+        return
+    (rate, sig) = wav.read(wavPath)
+    # Features: mel-spectrogram
+    features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    # Add padding
+    time_limit = 1500
+    if len(features[0]) < time_limit:
+        arr = np.ones((128, time_limit - len(features[0])))
+        arr = arr * np.average(features)
+        features = np.concatenate((features, arr), axis=1)
+
+    print(features.shape)
+    return features
 
 
 def getFeature(wavPath):
-    if os.path.exists(wavPath)==False:
+    if os.path.exists(wavPath) == False:
         print("Error, wavPath doesn't exist!")
         return
-    (rate,sig) = wav.read(wavPath)
+    (rate, sig) = wav.read(wavPath)
 
     # #  - Mel Frequency Cepstral Coefficients
     # mfcc_feat = python_speech_features.mfcc(sig,rate)
@@ -99,20 +120,46 @@ def getFeature(wavPath):
     #
     # features = np.concatenate((logfbank_feat, delta_feat), axis = 1)
 
-    features = python_speech_features.mfcc(sig,rate)
+    # # Features: MFCC
+    # features = python_speech_features.mfcc(sig, rate)
 
-#     print(features.shape)
+    # # Features: pyAudioAnalysis 34 features (Zero Crossing Rate, Energy, Spectral Centroid, MFCC, etc)
+    # win = 0.025
+    # step = 0.010
+    # features = audioFeatureExtraction.stFeatureExtraction(sig, rate, int(win * rate), int(step * rate), )
+    # features = np.transpose(features)
+
+    # Features: pyAudioAnalysis 34 features and delta (68 in total)
+    win = 0.025
+    step = 0.010
+    features = audioFeatureExtraction.stFeatureExtraction(sig, rate, int(win * rate), int(step * rate), )
+    features = np.transpose(features)
+    delta_features = python_speech_features.delta(features, 2)
+    features = np.concatenate((features, delta_features), axis=1)
+
+    # # Features: mel-spectrogram
+    # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    # # Add padding
+    # time_limit = 1500
+    # if len(features[0]) < time_limit:
+    #     arr = np.ones((128, time_limit - len(features[0])))
+    #     arr = arr * np.average(features)
+    #     features = np.concatenate((features, arr), axis=1)
+
+    # print(features.shape)
     return features
+
 
 def conv2D_AvePool(wavPath, kernalSize):
     input = getFeature(wavPath)
-    (h,w) = input.shape
-    input_tensor = input.reshape((1,h, w,1))
-    kernalResolution = (24, w) # temporal resolutions: 16, 24, 32
+    (h, w) = input.shape
+    input_tensor = input.reshape((1, h, w, 1))
+    kernalResolution = (24, w)  # temporal resolutions: 16, 24, 32
 
     # build model
     inputs = Input(shape=(h, w, 1))
-    x = Conv2D(kernalSize, kernalResolution, kernel_initializer=initializers.RandomNormal(mean=0.0, stddev=0.05, seed=123))(inputs)
+    x = Conv2D(kernalSize, kernalResolution,
+               kernel_initializer=initializers.RandomNormal(mean=0.0, stddev=0.05, seed=123))(inputs)
 
     # model = Model(inputs=inputs, outputs=x)
     # result = model.predict(input_tensor)
@@ -120,17 +167,36 @@ def conv2D_AvePool(wavPath, kernalSize):
 
     output = AveragePooling2D((h - kernalResolution[0] + 1, 1))(x)
     model = Model(inputs=inputs, outputs=output)
-    result = model.predict(input_tensor)[0,0,0,:]
+    result = model.predict(input_tensor)[0, 0, 0, :]
 
     return result
 
-def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1):
+
+def avePool(wavPath):
+    input = getFeature(wavPath)
+    (h, w) = input.shape
+    input_tensor = input.reshape((1, h, w, 1))
+
+    # build model
+    inputs = Input(shape=(h, w, 1))
+
+    output = AveragePooling2D((h, 1))(inputs)
+    model = Model(inputs=inputs, outputs=output)
+    # result = model.predict(input_tensor)
+    # print(result.shape)
+    result = model.predict(input_tensor)[0, 0, :, 0]
+    # print(result.shape)
+    # print(result)
+    return result
+
+
+def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1, architecture=0):
     counter = 0
 
-#     #waveArr = list(os.walk(wavDirBase))
-#     waveArr0 = [os.listdir(os.path.join(wavDirBase, x)) for x in os.listdir(wavDirBase) if not os.path.isfile(x)]
-#     fileCount = sum([len(list1) for list1 in waveArr0])
-#     # waveArr = [item for sublist in waveArr0 for item in sublist]
+    #     #waveArr = list(os.walk(wavDirBase))
+    #     waveArr0 = [os.listdir(os.path.join(wavDirBase, x)) for x in os.listdir(wavDirBase) if not os.path.isfile(x)]
+    #     fileCount = sum([len(list1) for list1 in waveArr0])
+    #     # waveArr = [item for sublist in waveArr0 for item in sublist]
 
     x_all_list = []
     y_all_list = []
@@ -141,11 +207,19 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
         numOfWavs = 0
         print("len(waveArr)", len(waveArr))
         for wavFile in waveArr:
-            if wavFile.endswith(".wav")==False:
+            if wavFile.endswith(".wav") == False:
                 continue
 
             wavPath = "{}/{}/{}".format(wavDirBase, category, wavFile)
-            result = conv2D_AvePool(wavPath, kernalSize)
+
+            if architecture in [0, 1, 3]:
+                # Use AvePool
+                result = avePool(wavPath)
+            elif architecture == 2:
+                # Use conv2DAvePool
+                result = conv2D_AvePool(wavPath, kernalSize)
+            elif architecture == 4:
+                result = getMelspectrogram(wavPath)
 
             x_all_list.append(result)
             y_all_list.append(categories.index(category))
@@ -153,17 +227,20 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
             counter += 1
             numOfWavs += 1
 
-            if (numOfWavsForEachCategory>0 and numOfWavs>=numOfWavsForEachCategory):
+            if (numOfWavsForEachCategory > 0 and numOfWavs >= numOfWavsForEachCategory):
                 break
 
             if (counter % 100 == 0):
                 K.clear_session()
                 print("{} files have been processed at {}".format(counter, datetime.datetime.utcnow()))
-    #             if (counter>=200):
-    #                 break;
-#             break
+                #             if (counter>=200):
+                #                 break;
+                #             break
 
     x_all = np.array(x_all_list)
     y_all = np.array(y_all_list)
+
+    print("x_all.shape", x_all.shape)
+    print("y_all.shape", y_all.shape)
 
     return x_all, y_all
