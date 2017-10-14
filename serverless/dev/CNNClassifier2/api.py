@@ -90,7 +90,7 @@ def getMelspectrogram(wavPath):
     # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
 
     if (sig.shape[0] / rate > 5) or (sig.shape[0] / rate < 2):
-        return None
+        return []
 
     features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
     features = scipy.misc.imresize(features, (features.shape[0], 300))
@@ -234,12 +234,17 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
                 result = conv2D_AvePool(wavPath, kernalSize)
             elif architecture == 4:
                 result = getMelspectrogram(wavPath)
+                print("result", result)
 
-            if not result:
+            if len(result)==0:
                 continue
 
+            # print("result.shape", result.shape)
+            # print("x_all_list.append(result)", x_all_list.append(result))
             x_all_list.append(result)
             y_all_list.append(categories.index(category))
+
+            # print("len(x_all_list)", len(x_all_list))
 
             counter += 1
             numOfWavs += 1
