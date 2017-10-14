@@ -69,3 +69,5 @@ serverless/dev/.ipynb_checkpoints
 serverless/test/.ipynb_checkpoints
 *.npy
 package-lock.json.526051140
+serverless/dev/CNNClassifier2/__pycache__/api.cpython-35.pyc
+serverless/dev/CNNClassifier2/__pycache__/config.cpython-35.pyc

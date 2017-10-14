@@ -58,3 +58,10 @@ if len(S[0]) < time_limit:
 
 librosa.display.specshow(S, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
 
+import python_speech_features
+features = python_speech_features.mfcc(sig, rate)
+features = np.transpose(features)
+
+plt.clf()
+plt.imshow(features, aspect='auto')
+plt.colorbar()

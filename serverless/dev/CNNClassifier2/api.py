@@ -85,16 +85,21 @@ def getMelspectrogram(wavPath):
         print("Error, wavPath doesn't exist!")
         return
     (rate, sig) = wav.read(wavPath)
-    # Features: mel-spectrogram
-    features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    # # Features: mel-spectrogram
+    # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+
+    features = python_speech_features.mfcc(sig, rate)
+    features = np.transpose(features)
+
     # Add padding
-    time_limit = 1500
+    time_limit = 3000
     if len(features[0]) < time_limit:
-        arr = np.ones((128, time_limit - len(features[0])))
+        arr = np.ones((13, time_limit - len(features[0])))
         arr = arr * np.average(features)
         features = np.concatenate((features, arr), axis=1)
 
-    print(features.shape)
+    # print(features.shape)
+
     return features
 
 
