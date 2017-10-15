@@ -11,6 +11,7 @@ from __future__ import print_function
 from keras import optimizers
 from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D
+from keras.callbacks import EarlyStopping
 # from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
 # from keras import backend as K
 # import os
@@ -167,8 +168,13 @@ print("class_weight_dict", class_weight_dict)
 X_train = X_train.reshape(-1, X_train.shape[1], X_train.shape[2], 1)
 X_test = X_test.reshape(-1, X_test.shape[1], X_test.shape[2], 1)
 
+esCallback = EarlyStopping(monitor='val_loss',
+                              min_delta=0,
+                              patience=2,
+                              verbose=1, mode='auto')
+
 lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
-              class_weight=class_weight_dict)
+              class_weight=class_weight_dict, callbacks=[esCallback])
 # Test modal
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
