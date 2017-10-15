@@ -35,7 +35,6 @@ from keras.utils.np_utils import to_categorical
 import config
 import api
 
-
 # model params
 batch_size = config.arc1Config['batch_size']
 categories = config.arc1Config['categories']
@@ -58,9 +57,10 @@ numOfWavsForEachCategory = config.arc1Config['numOfWavsForEachCategory']
 x_all = np.load("IEMOCAP_X.npy")
 y_all = np.load("IEMOCAP_Y.npy")
 
-X_train, X_test, Y_train, Y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=0)
+X_trainValid, X_test, Y_trainValid, Y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=0)
+X_train, X_valid, Y_train, Y_valid = train_test_split(X_trainValid, Y_trainValid, test_size=0.2, random_state=0)
 
-# Generate data
+# Generate training data
 X_train, Y_train = api.generateData(X_train, Y_train, batch_size=4)
 
 Y_train_cat = to_categorical(Y_train)
@@ -177,22 +177,23 @@ X_test = X_test.reshape(-1, X_test.shape[1], X_test.shape[2], 1)
 
 # callbacks
 esCallback = EarlyStopping(monitor='val_loss',
-                              min_delta=0,
-                              patience=10,
-                              verbose=1, mode='auto')
+                           min_delta=0,
+                           patience=10,
+                           verbose=1, mode='auto')
 
 saveModelFilePath = "savedModel"
 if os.path.exists(saveModelFilePath) != True:
     print("Creating dir: " + saveModelFilePath)
     os.makedirs(saveModelFilePath)
 
-savedModelPath = saveModelFilePath+"/weights.best.hdf5"
+savedModelPath = saveModelFilePath + "/weights.best.hdf5"
 
-checkpoint = ModelCheckpoint(savedModelPath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)
+checkpoint = ModelCheckpoint(savedModelPath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False,
+                             mode='max', period=1)
 
 # fit model
 lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
-              class_weight=class_weight_dict, callbacks=[checkpoint, esCallback])
+              validation_data=(X_valid, Y_valid), class_weight=class_weight_dict, callbacks=[checkpoint, esCallback])
 
 print("Loading best model weight...")
 lastModel.load_weights(savedModelPath)
@@ -200,7 +201,6 @@ lastModel.load_weights(savedModelPath)
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
 print('Test Unweighted accuracy:', score[1])
-
 
 # y_pred = lastModel.predict(X_test)
 # acc = sum([np.argmax(Y_test_cat[i])==np.argmax(y_pred[i]) for i in range(len(X_test))])/len(X_test)
