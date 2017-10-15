@@ -134,19 +134,19 @@ elif architecture == 4:
     # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
 
     lastModel.add(Conv2D(32, (3, 3), input_shape=(x_all[0].shape[0], x_all[0].shape[1], 1), padding="same"))
-    lastModel.add(Activation('relu'))
     lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    lastModel.add(Activation('relu'))
 
-    lastModel.add(Conv2D(32, (3, 3), padding="same"))
-    lastModel.add(Activation('relu'))
-    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-
-    lastModel.add(Conv2D(64, (3, 3), padding="same"))
-    lastModel.add(Activation('relu'))
-    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    # lastModel.add(Conv2D(32, (3, 3), padding="same"))
+    # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    # lastModel.add(Activation('relu'))
+    #
+    # lastModel.add(Conv2D(64, (3, 3), padding="same"))
+    # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    # lastModel.add(Activation('relu'))
 
     lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-    lastModel.add(Dense(64))
+    lastModel.add(Dense(128))
     lastModel.add(Activation('relu'))
     lastModel.add(Dropout(0.5))
     lastModel.add(Dense(units=num_classes, activation='softmax'))
