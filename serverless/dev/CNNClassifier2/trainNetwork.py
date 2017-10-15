@@ -60,7 +60,7 @@ y_all = np.load("IEMOCAP_Y.npy")
 
 ################ Generate more data ###################
 # datagen = ImageDataGenerator(width_shift_range=0.2, zoom_range=0.2)
-datagen = ImageDataGenerator(width_shift_range=0.2, zoom_range=0.05)
+datagen = ImageDataGenerator(width_shift_range=0.1, zoom_range=0.05)
 
 # x_all.shape
 # y_all.shape
@@ -74,7 +74,7 @@ y_all_generated = []
 # generateSize = x_all.shape[0] * 2
 i = 0
 print("Generating data")
-for batch in datagen.flow(x=x_all, y=y_all, batch_size=2, save_to_dir=None):
+for batch in datagen.flow(x=x_all, y=y_all, batch_size=4, save_to_dir=None):
     i += 1
     # print("batch", batch)
     # x_batch = print("batch[0].shape", batch[0].shape)
