@@ -85,8 +85,8 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
 #                         print("category: ", category, line)
 
 
-def generateData(x, y, batch_size=4):
-    datagen = ImageDataGenerator(width_shift_range=0.1, zoom_range=0.05)
+def generateData(x, y, batch_size=4, width_shift_range=0.2, zoom_range=0.05):
+    datagen = ImageDataGenerator(width_shift_range=width_shift_range, zoom_range=zoom_range)
 
     # x_all.shape
     # y_all.shape
