@@ -12,7 +12,7 @@ arc1Config = {
     'categories': ["Anger", "Happiness", "Neutral", "Sadness"],
     'epochs': 20,
     'kernalSize': 180,
-    'numOfWavsForEachCategory': 600,
+    'numOfWavsForEachCategory': -1,
     'archNames': {0: "AvePool, Softmax", 1: "AvePool, 8+4, Softmax; ", 2: "Conv2D, AvePool, Softmax", 3: "AvePool, 32+16+8, Softmax", 4: "MelSpectrogram+Padding, Conv2D+Conv2D.., Softmax"},
     'architecture': 4,
 }
