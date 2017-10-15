@@ -11,14 +11,14 @@ from __future__ import print_function
 from keras import optimizers
 from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 # from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
 # from keras import backend as K
 # import os
 import numpy as np
 from sklearn.utils import class_weight
 from sklearn.model_selection import train_test_split
-
+import os
 # import matplotlib.pyplot as plt
 # import scipy.io.wavfile as wav
 # %matplotlib inline
@@ -168,13 +168,24 @@ print("class_weight_dict", class_weight_dict)
 X_train = X_train.reshape(-1, X_train.shape[1], X_train.shape[2], 1)
 X_test = X_test.reshape(-1, X_test.shape[1], X_test.shape[2], 1)
 
+# callbacks
 esCallback = EarlyStopping(monitor='val_loss',
                               min_delta=0,
                               patience=2,
                               verbose=1, mode='auto')
 
+saveModelFilePath = "savedModel"
+if os.path.exists(saveModelFilePath) != True:
+    print("Creating dir: " + saveModelFilePath)
+    os.makedirs(saveModelFilePath)
+
+filepath = saveModelFilePath+"/weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+
+checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+
+# fit model
 lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
-              class_weight=class_weight_dict, callbacks=[esCallback])
+              class_weight=class_weight_dict, callbacks=[checkpoint, esCallback])
 # Test modal
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])

@@ -36,10 +36,7 @@ def placeUtteranceToFolder(wavPath, category, savePath):
 
 
 def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage=0.6):
-    # categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
     categories = config.arc1Config['categories']
-    list()
-    # wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
 
     with open(filePath) as f:
         wav_basename = ""
