@@ -64,6 +64,7 @@ X_train, X_valid, Y_train, Y_valid = train_test_split(X_trainValid, Y_trainValid
 X_train, Y_train = api.generateData(X_train, Y_train, batch_size=4)
 
 Y_train_cat = to_categorical(Y_train)
+Y_valid_cat = to_categorical(Y_valid)
 Y_test_cat = to_categorical(Y_test)
 
 print("X_train.shape", X_train.shape)
@@ -170,9 +171,11 @@ class_weight_dict = dict(enumerate(class_weight))
 # for i, v in enumerate(class_weight):
 #     class_weight_dict[i] = v
 print("class_weight_dict", class_weight_dict)
+
 # Train modal
 
 X_train = X_train.reshape(-1, X_train.shape[1], X_train.shape[2], 1)
+X_valid = X_valid.reshape(-1, X_valid.shape[1], X_valid.shape[2], 1)
 X_test = X_test.reshape(-1, X_test.shape[1], X_test.shape[2], 1)
 
 # callbacks
@@ -192,8 +195,9 @@ checkpoint = ModelCheckpoint(savedModelPath, monitor='val_acc', verbose=1, save_
                              mode='max', period=1)
 
 # fit model
-lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
-              validation_data=(X_valid, Y_valid), class_weight=class_weight_dict, callbacks=[checkpoint, esCallback])
+lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1,
+              validation_data=(X_valid, Y_valid_cat), class_weight=class_weight_dict,
+              callbacks=[checkpoint, esCallback])
 
 print("Loading best model weight...")
 lastModel.load_weights(savedModelPath)
