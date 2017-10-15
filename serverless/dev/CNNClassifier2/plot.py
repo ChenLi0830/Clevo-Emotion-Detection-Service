@@ -52,10 +52,13 @@ plt.legend()
 plt.clf()
 # plt.figure(figsize=(10, 4))
 S = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+S_DB = librosa.power_to_db(S, ref=np.max)
+
 print("S.shape", S.shape)
 
 plt.figure()
-librosa.display.specshow(S, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
+# librosa.display.specshow(S, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
+librosa.display.specshow(S_DB, y_axis='mel', x_axis='time', fmin=50, fmax=3000)
 plt.colorbar()
 
 # S2 = scipy.misc.imresize(S, 0.25)

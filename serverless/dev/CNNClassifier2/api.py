@@ -93,6 +93,9 @@ def getMelspectrogram(wavPath):
         return []
 
     features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    # power to DB
+    features = librosa.power_to_db(features, ref=np.max)
+
     features = scipy.misc.imresize(features, (features.shape[0], 300))
 
     features = features / np.max(features)
