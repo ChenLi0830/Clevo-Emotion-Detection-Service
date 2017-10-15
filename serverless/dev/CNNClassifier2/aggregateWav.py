@@ -1,8 +1,8 @@
 import os
 from api import readFileAndAggregateUtterance
 
-wavDir = "EmotionRecognization/wav"
-emoTagsDir = "EmotionRecognization/emotionTags"
+wavDir = "raw_data/EmotionRecognization/wav"
+emoTagsDir = "raw_data/EmotionRecognization/emotionTags"
 
 for emoFile in os.listdir(emoTagsDir):
     emoFilePath = "{}/{}".format(emoTagsDir, emoFile)
