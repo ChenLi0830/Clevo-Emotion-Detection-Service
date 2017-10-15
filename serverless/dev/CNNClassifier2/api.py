@@ -39,7 +39,7 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
     # categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
     categories = config.arc1Config['categories']
     list()
-    wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
+    # wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
 
     with open(filePath) as f:
         wav_basename = ""
@@ -58,7 +58,7 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
                         # print("cateStats[category] / count", cateStats[category] / count)
                         if (cateStats[category] / count >= percentage):
                             wavFolder = re.search('(.*)_[^_]*', wav_basename).group(1)
-                            wavFilePath = "{}/{}/{}.wav".format(wavDirPath, wavFolder, wav_basename)
+                            wavFilePath = "{}/{}/{}.wav".format(wavDir, wavFolder, wav_basename)
                             placeUtteranceToFolder(wavFilePath, category, relativeSavePath)
 
                     # re-initialize
