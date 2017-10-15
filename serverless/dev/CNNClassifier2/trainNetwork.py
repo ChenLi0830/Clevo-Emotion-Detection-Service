@@ -145,13 +145,13 @@ elif architecture == 4:
     lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
     lastModel.add(Activation('relu'))
 
-    # lastModel.add(Conv2D(32, (3, 3), padding="same"))
-    # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-    # lastModel.add(Activation('relu'))
-    #
-    # lastModel.add(Conv2D(64, (3, 3), padding="same"))
-    # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-    # lastModel.add(Activation('relu'))
+    lastModel.add(Conv2D(32, (3, 3), padding="same"))
+    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    lastModel.add(Activation('relu'))
+
+    lastModel.add(Conv2D(64, (3, 3), padding="same"))
+    lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+    lastModel.add(Activation('relu'))
 
     lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
     lastModel.add(Dense(128))
