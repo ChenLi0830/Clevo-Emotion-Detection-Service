@@ -74,3 +74,4 @@ serverless/dev/CNNClassifier2/__pycache__/config.cpython-35.pyc
 serverless/dev/CNNClassifier2/emotion_model.h5
 serverless/dev/CNNClassifier2/emotion_model_weights.h5
 serverless/dev/CNNClassifier2/EmotionRecognization
+serverless/dev/CNNClassifier2/savedModel

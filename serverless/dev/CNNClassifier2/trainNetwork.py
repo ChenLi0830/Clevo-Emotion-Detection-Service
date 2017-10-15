@@ -171,7 +171,7 @@ X_test = X_test.reshape(-1, X_test.shape[1], X_test.shape[2], 1)
 # callbacks
 esCallback = EarlyStopping(monitor='val_loss',
                               min_delta=0,
-                              patience=2,
+                              patience=10,
                               verbose=1, mode='auto')
 
 saveModelFilePath = "savedModel"
@@ -181,7 +181,7 @@ if os.path.exists(saveModelFilePath) != True:
 
 filepath = saveModelFilePath+"/weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
 
-checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)
 
 # fit model
 lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
