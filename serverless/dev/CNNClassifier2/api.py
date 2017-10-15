@@ -13,6 +13,9 @@ from pyAudioAnalysis import audioFeatureExtraction
 import librosa
 import librosa.display
 import scipy
+import config
+
+
 
 def placeUtteranceToFolder(wavPath, category, savePath):
     catePath = savePath + "/" + category
@@ -33,14 +36,16 @@ def placeUtteranceToFolder(wavPath, category, savePath):
 
 
 def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage=0.6):
-    categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
+    # categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
+    categories = config.arc1Config['categories']
+    list()
     wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
 
     with open(filePath) as f:
         wav_basename = ""
         count = 0
         # cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
-        cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
+        cateStats = dict([(category, 0) for category in categories])
         for line in f:
             if (line[0] == "A"):
                 if (wav_basename != ""):
@@ -59,7 +64,7 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
                     # re-initialize
                     wav_basename = ""
                     count = 0
-                    cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
+                    cateStats = dict([(category, 0) for category in categories])
                 continue
 
             if (wav_basename == ""):
@@ -237,7 +242,7 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
                 result = conv2D_AvePool(wavPath, kernalSize)
             elif architecture == 4:
                 result = getMelspectrogram(wavPath)
-                print("result", result)
+                # print("result", result)
 
             if len(result)==0:
                 continue

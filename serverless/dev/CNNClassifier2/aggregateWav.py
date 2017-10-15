@@ -6,5 +6,5 @@ emoTagsDir = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_r
 
 for emoFile in os.listdir(emoTagsDir):
     emoFilePath = "{}/{}".format(emoTagsDir, emoFile)
-    readFileAndAggregateUtterance(emoFilePath, wavDir, "Preproc", percentage=1)
+    readFileAndAggregateUtterance(emoFilePath, wavDir, "Preproc", percentage=0.66)
 
