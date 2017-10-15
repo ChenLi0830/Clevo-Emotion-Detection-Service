@@ -92,9 +92,9 @@ for batch in datagen.flow(x=x_all, y=y_all, batch_size=4, save_to_dir=None):
         break  # otherwise the generator would loop indefinitely
 
 x_all_generated = np.array(x_all_generated)
-x_all_generated = x_all_generated.reshape(-1, x_all_generated.shape[1], x_all_generated.shape[2], 1)
+# x_all_generated = x_all_generated.reshape(-1, x_all_generated.shape[1], x_all_generated.shape[2], 1)
 y_all_generated = np.array(y_all_generated)
-y_all_generated = y_all_generated.reshape(-1, 1)
+# y_all_generated = y_all_generated.reshape(-1, 1)
 print("x_all_generated.shape", x_all_generated.shape)
 print("y_all_generated.shape", y_all_generated.shape)
 x_all = x_all_generated
@@ -106,8 +106,9 @@ X_train, X_test, Y_train, Y_test = train_test_split(x_all, y_all, test_size=0.2,
 Y_train_cat = to_categorical(Y_train)
 Y_test_cat = to_categorical(Y_test)
 
-print(X_train.shape)
-print(Y_train_cat.shape)
+print("X_train.shape", X_train.shape)
+print("Y_train.shape", Y_train.shape)
+print("Y_train_cat.shape", Y_train_cat.shape)
 
 # Build modal
 print("Using model {}: {}".format(architecture, archNames[architecture]))
