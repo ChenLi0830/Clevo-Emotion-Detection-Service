@@ -179,17 +179,21 @@ if os.path.exists(saveModelFilePath) != True:
     print("Creating dir: " + saveModelFilePath)
     os.makedirs(saveModelFilePath)
 
-filepath = saveModelFilePath+"/weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+savedModelPath = saveModelFilePath+"/weights.best.hdf5"
 
-checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)
+checkpoint = ModelCheckpoint(savedModelPath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)
 
 # fit model
 lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2,
               class_weight=class_weight_dict, callbacks=[checkpoint, esCallback])
+
+print("Loading best model weight...")
+lastModel.load_weights(savedModelPath)
 # Test modal
 score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
 print('Test loss:', score[0])
 print('Test Unweighted accuracy:', score[1])
+
 
 # y_pred = lastModel.predict(X_test)
 # acc = sum([np.argmax(Y_test_cat[i])==np.argmax(y_pred[i]) for i in range(len(X_test))])/len(X_test)
