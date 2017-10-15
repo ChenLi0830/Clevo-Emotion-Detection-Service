@@ -14,6 +14,7 @@ import librosa
 import librosa.display
 import scipy
 import config
+from keras.preprocessing.image import ImageDataGenerator
 
 
 
@@ -82,6 +83,49 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
 
 # print("category {} is counted as {}".format(category, cateStats[category]))
 #                         print("category: ", category, line)
+
+
+def generateData(x, y, batch_size=4):
+    datagen = ImageDataGenerator(width_shift_range=0.1, zoom_range=0.05)
+
+    # x_all.shape
+    # y_all.shape
+
+    x = x.reshape(-1, x.shape[1], x.shape[2], 1)
+    y = y.reshape(-1, 1)
+
+    x_generated = []
+    y_generated = []
+
+    # generateSize = x_all.shape[0] * 2
+    i = 0
+    print("Generating data")
+    for batch in datagen.flow(x=x, y=y, batch_size=batch_size, save_to_dir=None):
+        i += 1
+        # print("batch", batch)
+        # x_batch = print("batch[0].shape", batch[0].shape)
+        x_batch = batch[0]
+        # print("x_batch.shape", x_batch.shape)
+        y_batch = batch[1]
+        # print("y_batch.shape", y_batch.shape)
+
+        for j in range(x_batch.shape[0]):
+            # print("j", j)
+            # print("x_batch[j, :, :, 0].shape", x_batch[j, :, :, 0].shape)
+            x_generated.append(x_batch[j, :, :, 0])
+            y_generated.append(y_batch[j, 0])
+        if i > x.shape[0]:
+            break  # otherwise the generator would loop indefinitely
+
+    x_generated = np.array(x_generated)
+    # x_all_generated = x_all_generated.reshape(-1, x_all_generated.shape[1], x_all_generated.shape[2], 1)
+    y_generated = np.array(y_generated)
+    # y_all_generated = y_all_generated.reshape(-1, 1)
+    return x_generated, y_generated
+    # x_all = x_generated
+    # y_all = y_generated
+
+
 
 def getMelspectrogram(wavPath):
     if os.path.exists(wavPath) == False:

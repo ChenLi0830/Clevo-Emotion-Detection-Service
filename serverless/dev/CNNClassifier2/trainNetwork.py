@@ -33,6 +33,7 @@ import os
 from keras.utils.np_utils import to_categorical
 # import python_speech_features
 import config
+import api
 
 
 # model params
@@ -57,52 +58,11 @@ numOfWavsForEachCategory = config.arc1Config['numOfWavsForEachCategory']
 x_all = np.load("IEMOCAP_X.npy")
 y_all = np.load("IEMOCAP_Y.npy")
 
-
-################ Generate more data ###################
-# datagen = ImageDataGenerator(width_shift_range=0.2, zoom_range=0.2)
-datagen = ImageDataGenerator(width_shift_range=0.1, zoom_range=0.05)
-
-# x_all.shape
-# y_all.shape
-
-x_all = x_all.reshape(-1, x_all.shape[1], x_all.shape[2], 1)
-y_all = y_all.reshape(-1, 1)
-
-x_all_generated = []
-y_all_generated = []
-
-# generateSize = x_all.shape[0] * 2
-i = 0
-print("Generating data")
-for batch in datagen.flow(x=x_all, y=y_all, batch_size=4, save_to_dir=None):
-    i += 1
-    # print("batch", batch)
-    # x_batch = print("batch[0].shape", batch[0].shape)
-    x_batch = batch[0]
-    # print("x_batch.shape", x_batch.shape)
-    y_batch = batch[1]
-    # print("y_batch.shape", y_batch.shape)
-
-    for j in range(x_batch.shape[0]):
-        # print("j", j)
-        # print("x_batch[j, :, :, 0].shape", x_batch[j, :, :, 0].shape)
-        x_all_generated.append(x_batch[j, :, :, 0])
-        y_all_generated.append(y_batch[j, 0])
-    if i > x_all.shape[0]:
-        break  # otherwise the generator would loop indefinitely
-
-x_all_generated = np.array(x_all_generated)
-# x_all_generated = x_all_generated.reshape(-1, x_all_generated.shape[1], x_all_generated.shape[2], 1)
-y_all_generated = np.array(y_all_generated)
-# y_all_generated = y_all_generated.reshape(-1, 1)
-print("x_all_generated.shape", x_all_generated.shape)
-print("y_all_generated.shape", y_all_generated.shape)
-x_all = x_all_generated
-y_all = y_all_generated
-#############################################
-
-
 X_train, X_test, Y_train, Y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=0)
+
+# Generate data
+X_train, Y_train = api.generateData(X_train, Y_train, batch_size=4)
+
 Y_train_cat = to_categorical(Y_train)
 Y_test_cat = to_categorical(Y_test)
 
