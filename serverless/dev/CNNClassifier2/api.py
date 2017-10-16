@@ -135,7 +135,7 @@ def getMelspectrogram(wavPath):
     # # Features: mel-spectrogram
     # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
 
-    if (sig.shape[0] / rate > 5) or (sig.shape[0] / rate < 3):
+    if (sig.shape[0] / rate > 7) or (sig.shape[0] / rate < 3):
         return []
 
     features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
