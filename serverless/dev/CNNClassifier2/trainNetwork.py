@@ -61,7 +61,7 @@ X_trainValid, X_test, Y_trainValid, Y_test = train_test_split(x_all, y_all, test
 X_train, X_valid, Y_train, Y_valid = train_test_split(X_trainValid, Y_trainValid, test_size=0.2, random_state=0)
 
 # Generate training data
-X_train, Y_train = api.generateData(X_train, Y_train, batch_size=64, width_shift_range=0.2, zoom_range=0.05)
+X_train, Y_train = api.generateData(X_train, Y_train, batch_size=32, width_shift_range=0.2, zoom_range=0.1)
 
 Y_train_cat = to_categorical(Y_train)
 Y_valid_cat = to_categorical(Y_valid)
