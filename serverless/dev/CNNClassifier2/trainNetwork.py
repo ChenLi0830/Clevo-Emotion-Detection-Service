@@ -72,7 +72,9 @@ for train_size in train_sizes:
     X_train_frac, _, Y_train_frac, _ = \
         train_test_split(X_train, Y_train, train_size=train_size)
 
-    unweightedAcc, weightedAcc = api.trainNetwork(X_train_frac, Y_train_frac, X_valid, Y_valid_cat, X_test, Y_test_cat,
+    Y_train_frac_cat = to_categorical(Y_train_frac)
+
+    unweightedAcc, weightedAcc = api.trainNetwork(X_train_frac, Y_train_frac_cat, X_valid, Y_valid_cat, X_test, Y_test_cat,
                                                   architecture, num_classes, kernalSize, batch_size, epochs,
                                                   class_weight_dict)
 
