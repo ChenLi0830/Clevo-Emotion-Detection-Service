@@ -14,6 +14,7 @@ import config
 import api
 import sklearn
 import matplotlib.pyplot as plt
+import keras.backend as K
 
 # model params
 batch_size = config.arc1Config['batch_size']
@@ -24,6 +25,8 @@ num_classes = config.arc1Config['num_classes']
 architecture = config.arc1Config['architecture']
 archNames = config.arc1Config['archNames']
 numOfWavsForEachCategory = config.arc1Config['numOfWavsForEachCategory']
+
+K.clear_session()
 
 # Load data
 x_all = np.load("IEMOCAP_X.npy")
