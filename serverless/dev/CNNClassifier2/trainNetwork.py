@@ -35,8 +35,9 @@ y_all = np.load("IEMOCAP_Y.npy")
 X_trainValid, X_test, Y_trainValid, Y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=0)
 X_train, X_valid, Y_train, Y_valid = train_test_split(X_trainValid, Y_trainValid, test_size=0.2, random_state=0)
 
-# # Generate training data
-# X_train, Y_train = api.generateData(X_train, Y_train, batch_size=16, width_shift_range=0.2, zoom_range=0.1)
+# Data augmentation / Generate training data
+X_train, Y_train = api.generateData(X_train, Y_train, batch_size=16,
+                                    width_shift_range=0.2, zoom_range=0.05, height_shift_range=0.1)
 
 # reshape data
 X_train = X_train.reshape(-1, X_train.shape[1], X_train.shape[2], 1)
@@ -60,32 +61,32 @@ class_weight_dict = dict(enumerate(class_weight))
 #     class_weight_dict[i] = v
 print("class_weight_dict", class_weight_dict)
 
-# # Calculate accuracies
-# api.trainNetwork(X_train, Y_train_cat, X_valid, Y_valid_cat, X_test, Y_test_cat, architecture, num_classes, kernalSize,
-#                  batch_size, epochs, class_weight_dict)
+# Calculate accuracies
+api.trainNetwork(X_train, Y_train_cat, X_valid, Y_valid_cat, X_test, Y_test_cat, architecture, num_classes, kernalSize,
+                 batch_size, epochs, class_weight_dict)
 
-# Calculate learning curve
-train_sizes = (len(X_train) * np.linspace(0.1, 0.999, 4)).astype(int)
-print("train_sizes", train_sizes)
-
-unweighted_acc_scores = []
-weighted_acc_scores = []
-
-for train_size in train_sizes:
-    X_train_frac, _, Y_train_frac, _ = \
-        train_test_split(X_train, Y_train, train_size=train_size)
-
-    Y_train_frac_cat = to_categorical(Y_train_frac)
-
-    unweightedAcc, weightedAcc = api.trainNetwork(X_train_frac, Y_train_frac_cat, X_valid, Y_valid_cat, X_test, Y_test_cat,
-                                                  architecture, num_classes, kernalSize, batch_size, epochs,
-                                                  class_weight_dict)
-
-    unweighted_acc_scores.append(unweightedAcc)
-    weighted_acc_scores.append(weightedAcc)
-
-    print("Done size: ", train_size)
-
-plt.plot(train_sizes, unweighted_acc_scores, 'o-', label="unweighted_acc_scores")
-plt.plot(train_sizes, weighted_acc_scores, 'o-', label="weighted_acc_scores")
-plt.legend(loc="best")
+# # Calculate learning curve
+# train_sizes = (len(X_train) * np.linspace(0.1, 0.999, 4)).astype(int)
+# print("train_sizes", train_sizes)
+#
+# unweighted_acc_scores = []
+# weighted_acc_scores = []
+#
+# for train_size in train_sizes:
+#     X_train_frac, _, Y_train_frac, _ = \
+#         train_test_split(X_train, Y_train, train_size=train_size)
+#
+#     Y_train_frac_cat = to_categorical(Y_train_frac)
+#
+#     unweightedAcc, weightedAcc = api.trainNetwork(X_train_frac, Y_train_frac_cat, X_valid, Y_valid_cat, X_test, Y_test_cat,
+#                                                   architecture, num_classes, kernalSize, batch_size, epochs,
+#                                                   class_weight_dict)
+#
+#     unweighted_acc_scores.append(unweightedAcc)
+#     weighted_acc_scores.append(weightedAcc)
+#
+#     print("Done size: ", train_size)
+#
+# plt.plot(train_sizes, unweighted_acc_scores, 'o-', label="unweighted_acc_scores")
+# plt.plot(train_sizes, weighted_acc_scores, 'o-', label="weighted_acc_scores")
+# plt.legend(loc="best")
