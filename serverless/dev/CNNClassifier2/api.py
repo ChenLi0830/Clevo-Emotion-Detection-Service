@@ -92,23 +92,23 @@ def trainNetwork(X_train, Y_train_cat, X_valid, Y_valid_cat, X_test, Y_test_cat,
 
         lastModel.add(Conv2D(32, (3, 3), input_shape=(X_train[0].shape[0], X_train[0].shape[1], 1), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-        lastModel.add(BatchNormalization(axis=3))
+        # lastModel.add(BatchNormalization(axis=3))
         lastModel.add(Activation('relu'))
 
         lastModel.add(Conv2D(32, (3, 3), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-        lastModel.add(BatchNormalization(axis=3))
+        # lastModel.add(BatchNormalization(axis=3))
         lastModel.add(Activation('relu'))
 
         lastModel.add(Conv2D(64, (3, 3), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
-        lastModel.add(BatchNormalization(axis=3))
+        # lastModel.add(BatchNormalization(axis=3))
         lastModel.add(Activation('relu'))
 
         lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
         lastModel.add(Dense(128))
-        lastModel.add(Activation('relu'))
         lastModel.add(BatchNormalization())
+        lastModel.add(Activation('relu'))
         lastModel.add(Dropout(0.5))
         lastModel.add(Dense(units=num_classes, activation='softmax'))
 
