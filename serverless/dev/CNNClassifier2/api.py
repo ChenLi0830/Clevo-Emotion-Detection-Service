@@ -8,7 +8,7 @@ from keras import initializers, backend as K
 from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
 from keras import optimizers
 from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, BatchNormalization
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 import datetime
 from pyAudioAnalysis import audioFeatureExtraction
@@ -93,18 +93,22 @@ def trainNetwork(X_train, Y_train_cat, X_valid, Y_valid_cat, X_test, Y_test_cat,
         lastModel.add(Conv2D(32, (3, 3), input_shape=(X_train[0].shape[0], X_train[0].shape[1], 1), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
         lastModel.add(Activation('relu'))
+        lastModel.add(BatchNormalization())
 
         lastModel.add(Conv2D(32, (3, 3), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
         lastModel.add(Activation('relu'))
+        lastModel.add(BatchNormalization())
 
         lastModel.add(Conv2D(64, (3, 3), padding="same"))
         lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
         lastModel.add(Activation('relu'))
+        lastModel.add(BatchNormalization())
 
         lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
         lastModel.add(Dense(128))
         lastModel.add(Activation('relu'))
+        lastModel.add(BatchNormalization())
         lastModel.add(Dropout(0.5))
         lastModel.add(Dense(units=num_classes, activation='softmax'))
 
@@ -295,6 +299,7 @@ def getMelspectrogram(wavPath):
 
     features = scipy.misc.imresize(features, (features.shape[0], 300))
 
+    # Normalization - faster learning rate, higher accuracy
     features = features / np.max(features)
 
     # features = python_speech_features.mfcc(sig, rate)
