@@ -9,7 +9,8 @@ Created on Wed Oct 11 13:45:20 2017
 # model params
 arc1Config = {
     'batch_size': 128,
-    'categories': ["Anger", "Happiness", "Neutral", "Sadness"],
+    # 'categories': ["Anger", "Happiness", "Neutral", "Sadness"],
+    'categories': ["Anger", "Neutral"],
     'epochs': 100,
     'kernalSize': 180,
     'numOfWavsForEachCategory': -1,
