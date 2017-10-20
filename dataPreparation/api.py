@@ -1,6 +1,6 @@
 import os
 from scipy.io import wavfile
-import json
+#import json
 import ast
 import numpy as np
 
@@ -70,8 +70,42 @@ def segment_wav(jsonArr, path):
         wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
     # return []
 
-
-
+def segment_wav_may(jsonArr, path, low_th=3, high_th=6,span = 3):
+    if os.path.exists(path) != True:
+        raise ValueError("audio path doesn't exist")
+    # todo: check if it is .wav file
+    [sampleRate, audio] = wavfile.read(path)
+    print("sampleRate, len(audio)", sampleRate, len(audio))
+    
+    filePrefix = os.path.basename(path).split('.')[0]
+    savePath = "save"
+    if os.path.isdir(savePath) != True:
+        os.makedirs(savePath)
+        
+    for i, json in enumerate(jsonArr):
+        print(i, json)
+        begin = int(int(json['bg']) * sampleRate / 1000)
+        end = int(int(json['ed']) * sampleRate / 1000)
+        time_span = (int(json['ed']) - int(json['bg'])) /1000
+        audioSeg = audio[begin:end]
+        
+        if time_span < low_th:
+            continue
+        elif time_span <= high_th:
+            newFilePath = "{}/{}__{}.wav".format(savePath, filePrefix, str(i))
+            wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
+        else:
+            print(int(time_span))
+        
+            segs = int(int(time_span) / span)
+               
+            #index = [int(time_span) % i for i in range(low_th,high_th+1)].index(0)
+            #print(index)
+            #time_span_seg = range(low_th,high_th+1)[index]
+                           
+            for j, audioSeg_seg in enumerate(np.array_split(audioSeg, segs)):
+                    newFilePath = "{}/{}__{}_{}.wav".format(savePath, filePrefix, str(i),str(j))
+                    wavfile.write(newFilePath, sampleRate, np.array(audioSeg_seg, dtype="int16")) 
 
 
 
