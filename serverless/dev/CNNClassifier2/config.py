@@ -9,10 +9,11 @@ Created on Wed Oct 11 13:45:20 2017
 # model params
 arc1Config = {
     'batch_size': 128,
-    'categories': ["Anger", "Happiness", "Neutral", "Sadness"],
-    'epochs': 20,
+    # 'categories': ["Anger", "Happiness", "Neutral", "Sadness"],
+    'categories': ["Anger", "Neutral"],
+    'epochs': 100,
     'kernalSize': 180,
-    'numOfWavsForEachCategory': 600,
+    'numOfWavsForEachCategory': -1,
     'archNames': {0: "AvePool, Softmax", 1: "AvePool, 8+4, Softmax; ", 2: "Conv2D, AvePool, Softmax", 3: "AvePool, 32+16+8, Softmax", 4: "MelSpectrogram+Padding, Conv2D+Conv2D.., Softmax"},
     'architecture': 4,
 }

@@ -5,14 +5,174 @@ import numpy as np
 import python_speech_features
 import scipy.io.wavfile as wav
 from keras import initializers, backend as K
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Flatten, Activation
 from keras.layers import Conv2D, MaxPooling2D, Input, AveragePooling2D
+from keras import optimizers
+from keras.models import Sequential, Model
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, BatchNormalization
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import datetime
 from pyAudioAnalysis import audioFeatureExtraction
 import librosa
 import librosa.display
 import scipy
+import config
+from keras.preprocessing.image import ImageDataGenerator
+
+def trainNetwork(X_train, Y_train_cat, X_valid, Y_valid_cat, X_test, Y_test_cat, architecture, num_classes, kernalSize,
+                 batch_size, epochs, class_weight_dict):
+
+    # Build modal
+    if architecture == 0:
+        lastModel = Sequential()
+        lastModel.add(Dense(units=num_classes, input_dim=X_train.shape[1], activation='softmax'))
+        lastModel.compile(loss='categorical_crossentropy',
+                          # optimizer=adam,
+                          # optimizer='rmsprop',
+                          optimizer='adam',
+                          metrics=['accuracy'])
+
+    elif architecture == 1:
+        lastModel = Sequential()
+        print("x_all.shape[1]", X_train.shape[1])
+        lastModel.add(Dense(units=8, input_dim=X_train.shape[1], activation='relu'))
+        lastModel.add(Dense(units=4, activation='relu'))
+        # lastModel.add(Dense(units=4, input_dim=4))
+        # lastModel.add(Dense(units=8, input_dim=8))
+        lastModel.add(Dense(units=num_classes, activation='softmax'))
+        # lastModel.add(Activation('softmax'))
+        # print()
+        lastModel.compile(loss='categorical_crossentropy',
+                          # optimizer=adam,
+                          # optimizer='rmsprop',
+                          optimizer='adam',
+                          metrics=['accuracy'])
+
+    elif architecture == 2:
+        lastModel = Sequential()
+        lastModel.add(Dense(units=num_classes, input_dim=kernalSize))
+        # lastModel.add(Dense(units=512, input_dim=kernalSize))
+        # lastModel.add(Dense(units=num_classes, input_dim=512))
+        lastModel.add(Activation('softmax'))
+        # lastModel.add(Dense(10, activation='softmax'))
+
+        # sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+        # adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+
+        lastModel.compile(loss='categorical_crossentropy',
+                          # optimizer=adam,
+                          optimizer='rmsprop',
+                          # optimizer='adam',
+                          metrics=['accuracy'])
+
+    elif architecture == 3:
+        lastModel = Sequential()
+        print("x_all.shape[1]", X_train.shape[1])
+        lastModel.add(Dense(units=32, input_dim=X_train.shape[1], activation='relu'))
+        lastModel.add(Dense(units=16, activation='relu'))
+        lastModel.add(Dense(units=8, activation='relu'))
+        # lastModel.add(Dense(units=4, input_dim=4))
+        # lastModel.add(Dense(units=8, input_dim=8))
+        lastModel.add(Dense(units=num_classes, activation='softmax'))
+        # lastModel.add(Activation('softmax'))
+        # print()
+        lastModel.compile(loss='categorical_crossentropy',
+                          # optimizer=adam,
+                          # optimizer='rmsprop',
+                          optimizer='adam',
+                          metrics=['accuracy'])
+
+    elif architecture == 4:
+        lastModel = Sequential()
+        # print("x_all.shape[1]", X_train.shape[1])
+        # x_all.reshape(-1, 128, 1500, 1)
+
+        # lastModel.add(Conv2D(64, (3, 3), padding="same"))
+        # lastModel.add(Activation('relu'))
+        # lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+
+        lastModel.add(Conv2D(32, (3, 3), input_shape=(X_train[0].shape[0], X_train[0].shape[1], 1), padding="same"))
+        lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+        lastModel.add(BatchNormalization(axis=3))
+        lastModel.add(Activation('relu'))
+
+        lastModel.add(Conv2D(32, (3, 3), padding="same"))
+        lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+        # lastModel.add(BatchNormalization(axis=3))
+        lastModel.add(Activation('relu'))
+
+        lastModel.add(Conv2D(64, (3, 3), padding="same"))
+        lastModel.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
+        # lastModel.add(BatchNormalization(axis=3))
+        lastModel.add(Activation('relu'))
+
+        lastModel.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
+        lastModel.add(Dense(128))
+        # lastModel.add(BatchNormalization())
+        lastModel.add(Activation('relu'))
+        lastModel.add(Dropout(0.5))
+        lastModel.add(Dense(units=num_classes, activation='softmax'))
+
+        lastModel.compile(loss='categorical_crossentropy',
+                          # optimizer=adam,
+                          # optimizer='rmsprop',
+                          optimizer='adam',
+                          metrics=['accuracy'])
+
+
+    # callbacks
+    esCallback = EarlyStopping(monitor='val_loss',
+                               min_delta=0,
+                               patience=10,
+                               verbose=1, mode='auto')
+
+    saveModelFilePath = "savedModel"
+    if os.path.exists(saveModelFilePath) != True:
+        print("Creating dir: " + saveModelFilePath)
+        os.makedirs(saveModelFilePath)
+
+    savedModelPath = saveModelFilePath + "/weights.best.hdf5"
+
+    checkpoint = ModelCheckpoint(savedModelPath, monitor='val_loss', verbose=1, save_best_only=True,
+                                 save_weights_only=False,
+                                 mode='auto', period=1)
+
+    # fit model
+    lastModel.fit(X_train, Y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1,
+                  validation_data=(X_valid, Y_valid_cat), class_weight=class_weight_dict,
+                  callbacks=[checkpoint, esCallback])
+
+    print("Loading best model weight...")
+    lastModel.load_weights(savedModelPath)
+    # Test modal
+    score = lastModel.evaluate(X_test, Y_test_cat, verbose=0)
+    unweightedLoss = score[0]
+    unweightedAcc = score[1]
+    print('Test loss:', unweightedLoss)
+    print('Test Unweighted accuracy:', unweightedAcc)
+
+    # y_pred = lastModel.predict(X_test)
+    # acc = sum([np.argmax(Y_test_cat[i])==np.argmax(y_pred[i]) for i in range(len(X_test))])/len(X_test)
+    # print('Real test accuracy:', acc)
+    y_pred = lastModel.predict(X_test)
+    weightedAccuracyArr = np.zeros(num_classes)
+    count = np.zeros(num_classes)
+    for i in range(len(X_test)):
+        categoryIdx = np.argmax(Y_test_cat[i])
+        weightedAccuracyArr[categoryIdx] += np.argmax(Y_test_cat[i]) == np.argmax(y_pred[i])
+        count[categoryIdx] += 1
+
+    weightedAccuracyArr = weightedAccuracyArr / count
+    weightedAcc = sum(weightedAccuracyArr) / num_classes
+
+    print("Weighted category counts", count)
+    print("WeightedAccuracyArr", weightedAccuracyArr)
+    print("Weighted Accuracy: ", weightedAcc)
+
+    # Save modal
+    lastModel.save('emotion_model.h5')  # creates a HDF5 file 'my_model.h5'
+    lastModel.save_weights('emotion_model_weights.h5')
+
+    return unweightedAcc, weightedAcc
 
 def placeUtteranceToFolder(wavPath, category, savePath):
     catePath = savePath + "/" + category
@@ -33,14 +193,13 @@ def placeUtteranceToFolder(wavPath, category, savePath):
 
 
 def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage=0.6):
-    categories = ['Neutral', 'Anger', 'Frustration', 'Sadness', 'Happiness']
-    wavDirPath = "/Users/Chen/百度云同步盘/Startup/Clevo/数据/IEMOCAP_full_release/EmotionRecognization/wav/"
+    categories = config.arc1Config['categories']
 
     with open(filePath) as f:
         wav_basename = ""
         count = 0
         # cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
-        cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
+        cateStats = dict([(category, 0) for category in categories])
         for line in f:
             if (line[0] == "A"):
                 if (wav_basename != ""):
@@ -53,13 +212,13 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
                         # print("cateStats[category] / count", cateStats[category] / count)
                         if (cateStats[category] / count >= percentage):
                             wavFolder = re.search('(.*)_[^_]*', wav_basename).group(1)
-                            wavFilePath = "{}/{}/{}.wav".format(wavDirPath, wavFolder, wav_basename)
+                            wavFilePath = "{}/{}/{}.wav".format(wavDir, wavFolder, wav_basename)
                             placeUtteranceToFolder(wavFilePath, category, relativeSavePath)
 
                     # re-initialize
                     wav_basename = ""
                     count = 0
-                    cateStats = {'Neutral': 0, 'Anger': 0, 'Frustration': 0, 'Sadness': 0, 'Happiness': 0}
+                    cateStats = dict([(category, 0) for category in categories])
                 continue
 
             if (wav_basename == ""):
@@ -81,6 +240,51 @@ def readFileAndAggregateUtterance(filePath, wavDir, relativeSavePath, percentage
 # print("category {} is counted as {}".format(category, cateStats[category]))
 #                         print("category: ", category, line)
 
+
+def generateData(x, y, batch_size=4, width_shift_range=0.2, zoom_range=0.05, height_shift_range=0.1):
+    # datagen = ImageDataGenerator(width_shift_range=width_shift_range, zoom_range=zoom_range)
+    datagen = ImageDataGenerator(width_shift_range=width_shift_range,
+                                 zoom_range=[1-zoom_range, 1+zoom_range],
+                                 height_shift_range=height_shift_range)
+
+    # x_all.shape
+    # y_all.shape
+
+    x = x.reshape(-1, x.shape[1], x.shape[2], 1)
+    y = y.reshape(-1, 1)
+
+    x_generated = []
+    y_generated = []
+
+    # generateSize = x_all.shape[0] * 2
+    i = 0
+    print("Generating data")
+    for batch in datagen.flow(x=x, y=y, batch_size=batch_size, save_to_dir=None):
+        i += 1
+        # print("batch", batch)
+        # x_batch = print("batch[0].shape", batch[0].shape)
+        x_batch = batch[0]
+        # print("x_batch.shape", x_batch.shape)
+        y_batch = batch[1]
+        # print("y_batch.shape", y_batch.shape)
+
+        for j in range(x_batch.shape[0]):
+            # print("j", j)
+            # print("x_batch[j, :, :, 0].shape", x_batch[j, :, :, 0].shape)
+            x_generated.append(x_batch[j, :, :, 0])
+            y_generated.append(y_batch[j, 0])
+        if i > x.shape[0]:
+            break  # otherwise the generator would loop indefinitely
+
+    x_generated = np.array(x_generated)
+    # x_all_generated = x_all_generated.reshape(-1, x_all_generated.shape[1], x_all_generated.shape[2], 1)
+    y_generated = np.array(y_generated)
+    # y_all_generated = y_all_generated.reshape(-1, 1)
+    return x_generated, y_generated
+    # x_all = x_generated
+    # y_all = y_generated
+
+
 def getMelspectrogram(wavPath):
     if os.path.exists(wavPath) == False:
         print("Error, wavPath doesn't exist!")
@@ -89,12 +293,16 @@ def getMelspectrogram(wavPath):
     # # Features: mel-spectrogram
     # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
 
-    if (sig.shape[0] / rate > 5) or (sig.shape[0] / rate < 2):
+    if (sig.shape[0] / rate > 10) or (sig.shape[0] / rate < 2):
         return []
 
     features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
+    # power to DB
+    features = librosa.power_to_db(features, ref=np.max)
+
     features = scipy.misc.imresize(features, (features.shape[0], 300))
 
+    # Normalization - faster learning rate, higher accuracy
     features = features / np.max(features)
 
     # features = python_speech_features.mfcc(sig, rate)
@@ -234,9 +442,9 @@ def calculate_XY(wavDirBase, categories, kernalSize, numOfWavsForEachCategory=-1
                 result = conv2D_AvePool(wavPath, kernalSize)
             elif architecture == 4:
                 result = getMelspectrogram(wavPath)
-                print("result", result)
+                # print("result", result)
 
-            if len(result)==0:
+            if len(result) == 0:
                 continue
 
             # print("result.shape", result.shape)
