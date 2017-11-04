@@ -78,3 +78,5 @@ serverless/dev/CNNClassifier2/Preproc/AngerP/chen_anger.m4a
 serverless/dev/CNNClassifier2/Preproc/AngerP/wei_ang.m4a
 serverless/dev/CNNClassifier2/EmotionRecognization
 serverless/dev/CNNClassifier2/savedModel
+bestModel
+server/dockerVersion/app/__pycache__
