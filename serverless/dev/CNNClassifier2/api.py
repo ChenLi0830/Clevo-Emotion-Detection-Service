@@ -258,7 +258,7 @@ def generateData(x, y, batch_size=4, width_shift_range=0.2, zoom_range=0.05, hei
 
     # generateSize = x_all.shape[0] * 2
     i = 0
-    print("Generating data")
+    print("Generating training data")
     for batch in datagen.flow(x=x, y=y, batch_size=batch_size, save_to_dir=None):
         i += 1
         # print("batch", batch)
