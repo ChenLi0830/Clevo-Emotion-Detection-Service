@@ -1,8 +1,8 @@
 import os
 from scipy.io import wavfile
-#import json
-import ast
+
 import numpy as np
+from array_split import shape_split
 
 # jsonDirPath = '/Users/Chen/百度云同步盘/Startup/Clevo/联动数据/emotionJson/'
 # wavDirPath = '/Users/Chen/百度云同步盘/Startup/Clevo/联动数据/wav/'
@@ -70,44 +70,107 @@ def segment_wav(jsonArr, path):
         wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
     # return []
 
-def segment_wav_may(jsonArr, path, low_th=3, high_th=6,span = 3):
-    if os.path.exists(path) != True:
-        raise ValueError("audio path doesn't exist")
+def segment_wav_may(jsonArr, file_path, savePath='save', low_th=3, high_th=6):
+    if os.path.exists(file_path) != True:
+        raise ValueError("audio file_path doesn't exist")
     # todo: check if it is .wav file
-    [sampleRate, audio] = wavfile.read(path)
-    print("sampleRate, len(audio)", sampleRate, len(audio))
+    [sampleRate, audio] = wavfile.read(file_path)
+    #print("sampleRate, len(audio)", sampleRate, len(audio))
     
-    filePrefix = os.path.basename(path).split('.')[0]
-    savePath = "save"
+    filePrefix = os.path.basename(file_path).split('/')[-1].split('.')[0]
+    
     if os.path.isdir(savePath) != True:
         os.makedirs(savePath)
         
     for i, json in enumerate(jsonArr):
-        print(i, json)
+        
+        #print(i, json)
         begin = int(int(json['bg']) * sampleRate / 1000)
         end = int(int(json['ed']) * sampleRate / 1000)
         time_span = (int(json['ed']) - int(json['bg'])) /1000
         audioSeg = audio[begin:end]
         
         if time_span < low_th:
+            """remove sentence audio if it is too short e.g., < 3 s"""
             continue
         elif time_span <= high_th:
-            newFilePath = "{}/{}__{}.wav".format(savePath, filePrefix, str(i))
+            """save audio file to the savePath if it is between 3s and 6s
+               File format : savePath/originalFileName_speaker_begin_end.wav
+               E.g., audio = wavfile.read(originalFileName)
+                     sent_audio = audio[begin:end]
+            """
+            newFilePath = "{}/{}__sp{}__beg{}_end{}.wav".format(savePath, filePrefix, json['speaker'], str(begin),str(end))
             wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
         else:
-            print(int(time_span))
+            """For sentence audio that is longer than 6s, we divide it equally into '3s' sub-segments
+               File format : savePath/originalFileName_speaker_begin_end.wav
+               E.g., audio = wavfile.read(originalFileName)
+                     sent_audio = audio[begin:end]
+            """
+            #print(int(time_span))
         
-            segs = int(int(time_span) / span)
+            segs = int(int(time_span) / low_th)
                
             #index = [int(time_span) % i for i in range(low_th,high_th+1)].index(0)
             #print(index)
             #time_span_seg = range(low_th,high_th+1)[index]
-                           
-            for j, audioSeg_seg in enumerate(np.array_split(audioSeg, segs)):
-                    newFilePath = "{}/{}__{}_{}.wav".format(savePath, filePrefix, str(i),str(j))
-                    wavfile.write(newFilePath, sampleRate, np.array(audioSeg_seg, dtype="int16")) 
+            
+            slice_array = shape_split(audioSeg.shape, segs)               
+            for i in range(segs):
+                b = slice_array[i][0]
+                #print(b.start, b.stop)
+                audioSeg_seg = audio[begin+b.start:begin+b.stop]
+                newFilePath = "{}/{}__sp{}__beg{}_end{}.wav".format(savePath, filePrefix,json['speaker'], 
+                               str(begin+b.start),str(begin+b.stop))
+                wavfile.write(newFilePath, sampleRate, np.array(audioSeg_seg, dtype="int16")) 
+#            for j, audioSeg_seg in enumerate(np.array_split(audioSeg, segs)):
+#                newFilePath = "{}/{}__sp{}__{}_{}.wav".format(savePath, filePrefix,json['speaker'], str(i),str(j))
+#                wavfile.write(newFilePath, sampleRate, np.array(audioSeg_seg, dtype="int16")) 
+
+for b_item in b:
+    print(b_item)
+    if b_item:
+        dict(y.replace('"', '').split(':') for y in b_item.strip(',{').split(','))
 
 
+
+
+input_path = '/Users/wangwei/Developer/Repository/wav'
+output_path = '/Users/wangwei/Developer/Repository/wav_liudong_tag'
+from os import listdir
+from os.path import isfile, join
+import pandas as pd
+json_file = 'Clevo-Raw-Speech-Table1.csv'
+df = pd.read_csv(json_file, usecols=[0,4], encoding='latin-1')
+json_list = list(df['fileName (S)'].values)
+#list1 = [os.path.basename(f).split('.')[0] for f in listdir(input_path) if isfile(join(input_path, f))]
+def read_patch(input_dir, output_dir):
+    
+    onlyfiles = [f for f in listdir(input_path) if isfile(join(input_path, f))]
+    
+    for file_name in onlyfiles:
+        
+        filePrefix = os.path.basename(file_name).split('.')[0]
+        
+        # create jsonArr
+        if filePrefix in json_list:
+            file_path = join(input_path,file_name)
+            #print(file_name)
+            jsonArr_str = df[df['fileName (S)'] == filePrefix]['transcriptionText (S)'].values[0]
+            b = [x for x in jsonArr_str.strip("[]").split("}")]
+            jsonArr = []
+            for b_item in b:
+                if not b_item:
+                    continue
+                print(file_name)
+                try: 
+                    jsonArr.append(dict(y.replace('"', '').split(':') for y in b_item.strip(',{').split(',')))
+                except:
+                    pass
+        
+        # run 
+        segment_wav_may(jsonArr,file_path, output_path) #  write .wav files into output path 
+        
 
 
 
