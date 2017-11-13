@@ -57,8 +57,6 @@ def build_index_label(pred, label_list):
 @app.route("/",methods=['GET','POST'])
 def hello():
     print("request", request)
-    model = load_model('emotion_model.h5')
-    model.load_weights('emotion_model_weights.h5')
 
     try:
         url = request.form['audioURL']
@@ -67,16 +65,22 @@ def hello():
         # print("error", e)
         return "An url of audio file is required in the request"
 
+    ##############################
+    model = load_model('emotion_model.h5')
+    model.load_weights('emotion_model_weights.h5')
     # url = "https://s3-us-west-2.amazonaws.com/clevo.data/temp/Ses01M_impro04_F006.wav"
+
+    # define downloaded filename
     filename = "/tmp.wav"
 
+    # download file from url and save to 'filename'
     try:
         urllib.request.urlretrieve(url, filename)
     except Exception as e:
         return "Can't access the audio url you provide"
 
+    # get data to be predicted X_pred
     wavPath = filename
-
     result = getMelspectrogram(wavPath)
 
     if len(result) == 0:
@@ -94,6 +98,7 @@ def hello():
         response = build_index_label(result, label_list)
         print(response)
         return response
+    ##############################
 
 if __name__ == "__main__":
 	#decide what port to run the app in
