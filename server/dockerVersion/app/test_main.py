@@ -6,29 +6,11 @@ Created on Mon Nov 13 15:26:02 2017
 @author: wangwei
 """
 
-import os
-
 from keras.models import load_model
 
-
-import librosa
-import scipy.io.wavfile as wav
-import scipy
-import numpy as np
-from api import segment_wav_may
 #from main import getMelspectrogram, build_index_label, predict_3s, predict_module
 #from main import predict_module
 import main as app
-
-#def predict_module(url,model,jsonArr):
-#            
-#    # define downloaded filename
-#    filename = url
-#
-#    segment_wav_may(jsonArr, filename,'save')
-#    for seg_wavfile in os.listdir('save'):
-#        predict_3s(os.path.join('save',seg_wavfile), model)
-
 
 def kernel():
 
@@ -40,6 +22,7 @@ def kernel():
     # use real URL
     url = "https://s3-us-west-2.amazonaws.com/clevo.data/wav/20170623095248_956_15140969348_601.wav"
     #    url = "20170623095248_956_15140969348_601.wav"
-    app.predict_module(url, model, jsonArr)
+    return app.predict_module(url, model, jsonArr)
     
-kernel()
+    
+print(kernel())

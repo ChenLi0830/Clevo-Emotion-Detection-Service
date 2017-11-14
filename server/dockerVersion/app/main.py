@@ -64,13 +64,13 @@ def predict_3s(wavPath, model):
 
         result = model.predict(inputData)
 
-        print(result)
+        #print(result)
         # print("actual result: {}".format(y_all[index]))
         label_list = ["Angry", "Not Angry"]
 
         response = build_index_label(result, label_list)
-        print(response)
-        return response
+        #print(response)
+        return response, result
 
 def predict_module(url, model,jsonArr):
             
@@ -86,8 +86,18 @@ def predict_module(url, model,jsonArr):
     segment_wav_may(jsonArr, filename,'save')
 
     arr = []
+    result = dict()
     for seg_wavfile in os.listdir('save'):
-        arr.append(predict_3s(os.path.join('save',seg_wavfile), model))
+        
+        tag, prob = predict_3s(os.path.join('save',seg_wavfile), model)
+        
+        b = seg_wavfile.split('_')
+        result['begin'] = b[-2].replace('beg','')
+        result['end'] = b[-1].split('.')[0].replace('end','')
+        result['prob'] = prob
+        result['tag'] = tag
+        
+        arr.append(result)
     return arr
 
 @app.route("/",methods=['GET','POST'])
@@ -107,7 +117,7 @@ def hello():
     # url = "https://s3-us-west-2.amazonaws.com/clevo.data/temp/Ses01M_impro04_F006.wav"
     
     
-    predict_module(url, model, jsonArr)
+    return predict_module(url, model, jsonArr)
     
     ##############################
 
