@@ -80,3 +80,4 @@ serverless/dev/CNNClassifier2/EmotionRecognization
 serverless/dev/CNNClassifier2/savedModel
 bestModel
 server/dockerVersion/app/__pycache__
+Clevo-Raw-Speech-Table1.csv
