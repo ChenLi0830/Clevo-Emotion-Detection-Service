@@ -27,13 +27,13 @@ class RecognizeEmotion(graphene.Mutation):
         # geo = GeoInput(required=True)
         audioURL = graphene.String(required=True)
         # transcription_list = graphene.List(graphene.Field(TranscriptionSentence))
-        transcription_list = graphene.List(TranscriptionSentence)
+        transcription_list = graphene.String(required=True)
 
     Output = EmotionRecognitionResult
 
     def mutate(self, info, audioURL, transcription_list):
         # print('category_list', category_list, file=sys.stderr)
-        result = [predict_module(audioURL, transcription_list)]
+        result = predict_module(audioURL, transcription_list)
         print('EmotionRecognitionResult', result, file=sys.stderr)
 
         # time.sleep(5) # used for test server timeout config

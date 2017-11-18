@@ -20,6 +20,7 @@ from array_split import shape_split
 from keras import backend as K
 from keras.models import load_model
 
+model = None
 
 def segment_wav_by_sentence(speech_transcription, path):
     if os.path.exists(path) != True:
