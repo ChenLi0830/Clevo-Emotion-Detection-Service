@@ -15,7 +15,7 @@ import sys
 import re
 import json as jsonLibrary
 from array_split import shape_split
-
+from emotion import Emotion
 
 from keras import backend as K
 from keras.models import load_model
@@ -27,9 +27,8 @@ def segment_wav_by_sentence(speech_transcription, path):
         raise ValueError("audio path doesn't exist")
     # todo: check if it is .wav file
     [sampleRate, audio] = wavfile.read(path)
-    print("sampleRate, len(audio)", sampleRate, len(audio))
+    # print("sampleRate, len(audio)", sampleRate, len(audio))
     for i, json in enumerate(speech_transcription):
-        print(i, json)
         begin = int(int(json['bg']) * sampleRate / 1000)
         end = int(int(json['ed']) * sampleRate / 1000)
         audioSeg = audio[begin:end]
@@ -46,19 +45,19 @@ def segment_wav_by_seconds(speech_transcription, file_path, savePath='save', low
     speech_transcription_list = jsonLibrary.loads(re.sub(r'\'', '"', speech_transcription))
 
     print('file_path', file_path, file=sys.stdout)
-    print('len(speech_transcription_list)', len(speech_transcription_list))
-    print('speech_transcription_list', speech_transcription_list, file=sys.stdout)
+    # print('len(speech_transcription_list)', len(speech_transcription_list))
+    # print('speech_transcription_list', speech_transcription_list, file=sys.stdout)
 
     if not os.path.exists(file_path):
         raise ValueError("audio file_path doesn't exist")
     # todo: check if it is .wav file
 
     [sampleRate, audio] = wavfile.read(file_path)
-    print("sampleRate, len(audio)", sampleRate, len(audio), file=sys.stdout)
+    # print("sampleRate, len(audio)", sampleRate, len(audio), file=sys.stdout)
 
     filePrefix = os.path.basename(file_path).split('/')[-1].split('.')[0]
 
-    print('filePrefix', filePrefix, file=sys.stdout)
+    # print('filePrefix', filePrefix, file=sys.stdout)
 
     if not os.path.isdir(savePath):
         os.makedirs(savePath)
@@ -66,8 +65,6 @@ def segment_wav_by_seconds(speech_transcription, file_path, savePath='save', low
     # save the files segmented in 3-6 seconds
     new_files_path = []
     for i, json in enumerate(speech_transcription_list):
-
-        print('obj', json, file=sys.stdout)
         begin = int(int(json['bg']) * sampleRate / 1000)
         end = int(int(json['ed']) * sampleRate / 1000)
         time_span = (int(json['ed']) - int(json['bg'])) / 1000
@@ -148,7 +145,7 @@ def predict_3s(wavPath):
     result = getMelspectrogram(wavPath)
 
     if len(result) == 0:
-        print("wavPath too long")
+        print("wavPath too long/short")
         return "wavPath too long/short"
     else:
         inputData = result.reshape(1, result.shape[0], result.shape[1], 1)
@@ -164,7 +161,7 @@ def predict_3s(wavPath):
 
 def predict_module(url, speech_transcription):
     print('url', url, file=sys.stdout)
-    print(speech_transcription, file=sys.stdout)
+    # print(speech_transcription, file=sys.stdout)
     # define downloaded filename
     filename = "/tmp.wav"
 
@@ -183,17 +180,16 @@ def predict_module(url, speech_transcription):
         # tag, prob = predict_3s(os.path.join(segmentPath, seg_wavfile))
         tag, prob = predict_3s(seg_wav_file_path)
 
-        print('seg_wav_file_path', seg_wav_file_path, file=sys.stdout)
+        # print('seg_wav_file_path', seg_wav_file_path, file=sys.stdout)
 
-        b = seg_wav_file_path.split('/')[1].split('_')
+        file_name_meta = seg_wav_file_path.split('/')[1].split('_')
 
-        print('seg_wav_file_path.split("/")[1]', seg_wav_file_path.split('/')[1])
-
-        result = dict()
-        result['begin'] = b[-2].replace('beg', '')
-        result['end'] = b[-1].split('.')[0].replace('end', '')
-        result['prob'] = prob
-        result['tag'] = tag
+        result = Emotion(
+            begin=file_name_meta[-2].replace('beg', ''),
+            end=file_name_meta[-1].split('.')[0].replace('end', ''),
+            prob=prob,
+            tag=tag,
+        )
 
         arr.append(result)
 

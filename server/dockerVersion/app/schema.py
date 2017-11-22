@@ -1,8 +1,8 @@
 import graphene
-from api import predict_module
 import sys
-import time
-
+from api import predict_module
+from emotion import Emotion
+import json
 
 class Query(graphene.ObjectType):
     placeholder = graphene.String()
@@ -12,7 +12,8 @@ class Query(graphene.ObjectType):
 
 
 class EmotionRecognitionResult(graphene.ObjectType):
-    emotions = graphene.List(graphene.String)
+    # emotions = graphene.List(graphene.String)
+    emotions = graphene.List(Emotion)
 
 
 class TranscriptionSentence(graphene.InputObjectType):
@@ -34,8 +35,8 @@ class RecognizeEmotion(graphene.Mutation):
     def mutate(self, info, audioURL, transcription_list):
         # print('category_list', category_list, file=sys.stderr)
         result = predict_module(audioURL, transcription_list)
-        print('EmotionRecognitionResult', result, file=sys.stderr)
 
+        print('emotion recognization is performed on {}'.format(audioURL), file=sys.stderr)
         # time.sleep(5) # used for test server timeout config
         return EmotionRecognitionResult(emotions=result)
 
@@ -44,4 +45,4 @@ class Mutation(graphene.ObjectType):
     recognizeEmotion = RecognizeEmotion.Field()
 
 
-schema = graphene.Schema(query=Query, mutation=Mutation)
+graphqlSchema = graphene.Schema(query=Query, mutation=Mutation)

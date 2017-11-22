@@ -6,11 +6,11 @@ from flask import Flask
 import os
 
 from flask_graphql import GraphQLView
-from schema import schema
+from schema import graphqlSchema
 
 app = Flask(__name__)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True))
+app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=graphqlSchema, graphiql=True))
 
 
 if __name__ == "__main__":
