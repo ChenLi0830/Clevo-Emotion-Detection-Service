@@ -22,6 +22,9 @@ from keras.models import load_model
 
 model = None
 
+print("os.environ['fast_disk_path']", os.environ['fast_disk_path'], file=sys.stdout)
+
+
 def segment_wav_by_sentence(speech_transcription, path):
     if os.path.exists(path) != True:
         raise ValueError("audio path doesn't exist")
@@ -33,20 +36,20 @@ def segment_wav_by_sentence(speech_transcription, path):
         end = int(int(json['ed']) * sampleRate / 1000)
         audioSeg = audio[begin:end]
         filePrefix = os.path.basename(path).split('.')[0]
-        savePath = "save"
-        if os.path.isdir(savePath) != True:
+        savePath = os.environ['fast_disk_path']
+        if not os.path.isdir(savePath):
             os.makedirs(savePath)
         newFilePath = "{}/{}__{}.wav".format(savePath, filePrefix, str(i))
         wavfile.write(newFilePath, sampleRate, np.array(audioSeg, dtype="int16"))
         # return []
 
 
-def segment_wav_by_seconds(speech_transcription, file_path, savePath='save', low_th=3, high_th=6):
+def segment_wav_by_seconds(speech_transcription, file_path, savePath=os.environ['fast_disk_path'], low_th=3, high_th=6):
     speech_transcription_list = jsonLibrary.loads(re.sub(r'\'', '"', speech_transcription))
 
-    print('file_path', file_path, file=sys.stdout)
     # print('len(speech_transcription_list)', len(speech_transcription_list))
     # print('speech_transcription_list', speech_transcription_list, file=sys.stdout)
+
 
     if not os.path.exists(file_path):
         raise ValueError("audio file_path doesn't exist")
@@ -57,10 +60,15 @@ def segment_wav_by_seconds(speech_transcription, file_path, savePath='save', low
 
     filePrefix = os.path.basename(file_path).split('/')[-1].split('.')[0]
 
-    # print('filePrefix', filePrefix, file=sys.stdout)
 
+    # print('segment_wav_by_seconds savePath', savePath, file=sys.stdout)
     if not os.path.isdir(savePath):
+        print("savePath {} doesn't exist, creating savePath".format(savePath), file=sys.stdout)
         os.makedirs(savePath)
+        if not os.path.isdir(savePath):
+            print("Error, savePath can't be created!", file=sys.stdout)
+            return
+            # print("Error, savePath can't be created!")
 
     # save the files segmented in 3-6 seconds
     new_files_path = []
@@ -103,9 +111,8 @@ def segment_wav_by_seconds(speech_transcription, file_path, savePath='save', low
 
 
 def getMelspectrogram(wavPath):
-    if os.path.exists(wavPath) == False:
-        print("Error, wavPath doesn't exist!")
-        return
+    if not os.path.exists(wavPath):
+        raise ValueError("Error, wavPath doesn't exist!")
     (rate, sig) = wav.read(wavPath)
     # # Features: mel-spectrogram
     # features = librosa.feature.melspectrogram(y=sig, sr=rate, fmin=50, fmax=3000)
@@ -171,8 +178,9 @@ def predict_module(url, speech_transcription):
     except Exception as e:
         return "Can't access the audio url you provide"
 
-    segmentPath = 'save'
-    file_paths = segment_wav_by_seconds(speech_transcription, filename, segmentPath)
+
+    file_paths = segment_wav_by_seconds(speech_transcription, filename, os.environ['fast_disk_path'])
+    # print('file_paths', file_paths, file=sys.stdout)
     arr = []
 
     for seg_wav_file_path in file_paths:
@@ -180,9 +188,7 @@ def predict_module(url, speech_transcription):
         # tag, prob = predict_3s(os.path.join(segmentPath, seg_wavfile))
         tag, prob = predict_3s(seg_wav_file_path)
 
-        # print('seg_wav_file_path', seg_wav_file_path, file=sys.stdout)
-
-        file_name_meta = seg_wav_file_path.split('/')[1].split('_')
+        file_name_meta = seg_wav_file_path.split('/')[-1].split('_')
 
         result = Emotion(
             begin=file_name_meta[-2].replace('beg', ''),
@@ -192,7 +198,6 @@ def predict_module(url, speech_transcription):
         )
 
         arr.append(result)
-
 
     # remove tmp files
     for file_path in file_paths:
