@@ -16,6 +16,7 @@ import re
 import json as jsonLibrary
 from array_split import shape_split
 from emotion import Emotion
+import time
 
 from keras import backend as K
 from keras.models import load_model
@@ -178,7 +179,6 @@ def predict_module(url, speech_transcription):
     except Exception as e:
         return "Can't access the audio url you provide"
 
-
     file_paths = segment_wav_by_seconds(speech_transcription, filename, os.environ['fast_disk_path'])
     # print('file_paths', file_paths, file=sys.stdout)
     arr = []
@@ -203,4 +203,5 @@ def predict_module(url, speech_transcription):
     for file_path in file_paths:
         os.remove(file_path)
 
+    time.sleep(0)  # used for test server timeout config
     return arr
