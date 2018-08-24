@@ -62,7 +62,9 @@ S_DB = librosa.power_to_db(S, ref=np.max)
 x_all = np.load("IEMOCAP_X.npy")
 y_all = np.load("IEMOCAP_Y.npy")
 
-datagen = ImageDataGenerator(width_shift_range=0.2, zoom_range=0.05)
+datagen = ImageDataGenerator(width_shift_range=0.1,
+                             zoom_range=[0.95, 1.05],
+                             height_shift_range=0.1)
 
 x_all = x_all[0:3, :, :]
 y_all = y_all[0:3]

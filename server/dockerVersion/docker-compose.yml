@@ -9,4 +9,6 @@ services:
     environment:
       - FLASK_APP=main.py
       - FLASK_DEBUG=1
+      - fast_disk_path=/dev/xvda
+#      - fast_disk_path=~  # for dev
     command: bash -c "cd /app && flask run --host=0.0.0.0 --port=9000"
